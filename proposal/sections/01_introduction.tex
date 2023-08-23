@@ -5,16 +5,16 @@
 %   - Include a project outline and clear statement of purpose. 
 %   - Show substantial evidence of initiative.
 
-While compilers are deemed to be deterministic, unwanted errors would sometimes happen. This is due to the fact that: common pitfalls of the 
-language its written in are \emph{just} accepted by the community; edge cases of the language are not well considered; or by simply making a 
+While compilers are deemed to be deterministic, unwanted errors would sometimes happen. This is due to: common pitfalls of the 
+language it's written in are \emph{just} accepted by the community; edge cases of the language are not well considered; or by simply making a 
 mistake inside the implementation \cite[Sec. 1.2]{CompilerOptimization}. Human mistakes are natural in human-made software. As such, it is 
 critical to \emph{try} to minimize the intrinsic risks of error in compilers.
 
-Minimizing the risks of error is non-trivial. A suite of testing mechanisms are needed in order to ensure the reliability of a software. 
-There are several ways to do this. For softwares, regression testing in the form of Unit, Integration, and System level tests are the 
+Minimizing the risks of error is non-trivial. A suite of testing mechanisms is needed to ensure the reliability of software. 
+There are several ways to do this. For software, regression testing in the form of Unit, Integration, and System level tests are the 
 industry standard ways for mitigating risks \cite{testing}. Such testing suites are ideal for software with a human understandable behavior. However, 
-the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers are tedious and 
-time consuming \cite{compcertVerification}.
+the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers is tedious and 
+time-consuming \cite{compcertVerification}.
 
 Another way to verify the behavior of compilers is to \textbf{formally} specify them \cite{compcertVerification}. This project follows up on 
 previous works done to introduce formal semantics for GraalVM's \cite{graal} Intermediate Representation (IR)
@@ -22,7 +22,7 @@ previous works done to introduce formal semantics for GraalVM's \cite{graal} Int
 done, i.e. CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrates the theoretical aspects of formal 
 verification into the practicality of using it in a production setting.
 
-This project would attempt to bridge the subset of gap between the formal semantics of GraalVM and integrating it into GraalVM's test suite 
+This project would attempt to bridge the subset of the gap between the formal semantics of GraalVM and integrating it into GraalVM's test suite 
 \cite{Term_Graph_Optimizations}, focusing on creating an Automated Testing Framework for GraalVM's optimization DSL. The framework would represent an 
 automated test generation and, \emph{if possible}, automated simple proof generation. This would make it easy for GraalVM's developers to use 
 the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
@@ -30,13 +30,13 @@ the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
 To implement an Automated Testing Framework for GraalVM's optimization DSL, there are several options for the project to explore 
 (in order of ideal solutions):
 \begin{enumerate}
-    \item Utilizing \mono{Isabelle Server} - \mono{Client} interactions \cite[Ch. 4]{isabelleSystem} to generate test suite and simple proofs 
+    \item Utilizing \mono{Isabelle Server} - \mono{Client} interactions \cite[Ch. 4]{isabelleSystem} to generate a test suite and simple proofs 
           \cite{isabelleQuickcheck,isabelleProof,isabelleNitpick,isabelleSledgehammer};
     \item Extend the system of \mono{Isabelle/Scala} to utilize the full functionality of Isabelle \cite[Ch. 5]{isabelleSystem};
-    \item Creating an interpreter for the DSL, and applying a set of rules as a test suite.
+    \item Creating an interpreter for the DSL and applying a set of rules as a test suite.
 \end{enumerate}
 
-However, verification that DSL matches the implementation of GraalVM would be out of scope of this project. It would represent the throrough 
+However, verification that DSL matches the implementation of GraalVM would be out of the scope of this project. It would represent the thorough 
 2nd step of the compiler verification research thread \cite[pp. 5]{CompilerOptimization} -- similar to Alive2's \cite{Alive2} solution on formal 
 verification (See \ref{sec:Alive}); perhaps a future direction in Veriopt.
 
