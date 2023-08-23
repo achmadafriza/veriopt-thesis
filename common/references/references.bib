@@ -1,14 +1,149 @@
-@article{feynman,
-    issn = {0020-7748},
-    journal = {International Journal of Theoretical Physics},
-    pages = {467--488},
-    volume = {21},
-    publisher = {Kluwer Academic Publishers-Plenum Publishers},
-    number = {6-7},
-    year = {1982},
-    title = {Simulating physics with computers},
-    language = {eng},
-    address = {New York},
-    author = {Feynman, Richard},
-    keywords = {Physics;},
+@unpublished{CompilerOptimization,
+	title        = {Future Directions for Optimizing Compilers},
+	author       = {Nuno P. Lopes and John Regehr},
+	year         = 2018,
+	month        = sep,
+	note         = {arXiv preprint},
+	eprint       = {1809.02161},
+	archiveprefix = {arXiv},
+	primaryclass = {cs.PL},
+	abstract     = {
+		As software becomes larger, programming languages become higher-level, and
+		processors continue to fail to be clocked faster, we'll increasingly require
+		compilers to reduce code bloat, eliminate abstraction penalties, and exploit
+		interesting instruction sets. At the same time, compiler execution time must
+		not increase too much and also compilers should never produce the wrong
+		output. This paper examines the problem of making optimizing compilers
+		faster, less buggy, and more capable of generating high-quality output.
+	}
+}
+
+@article{testing,
+	title = {An overview of regression testing},
+	volume = {24},
+	issn = {0163-5948},
+	url = {https://dl.acm.org/doi/10.1145/308769.308790},
+	doi = {10.1145/308769.308790},
+	abstract = {Regression testing is an important part of the software development life cycle. Many articles have been published lately detailing the different approaches. This article is an overview of regression testing in the following areas: types of regression testing; unit, integration and system level testing, regression testing of global variables, regression testing of object-oriented software, comparisons of selective regression techniques, and cost comparisons of the types of regression testing.},
+	language = {en},
+	number = {1},
+	urldate = {2023-08-19},
+	journal = {ACM SIGSOFT Software Engineering Notes},
+	author = {Wahl, Nancy J.},
+	month = jan,
+	year = {1999},
+	pages = {69--73},
+	file = {Full Text PDF:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\PPKZADYJ\\Wahl - 1999 - An overview of regression testing.pdf:application/pdf},
+}
+
+@article{differentialTesting,
+	title = {Differential {Testing} for {Software}},
+	volume = {10},
+	language = {en},
+	number = {1},
+	pages={100--107},
+	author = {McKeeman, William M},
+	year = {1998},
+	file = {McKeeman - 1998 - Differential Testing for Software.pdf:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\NHW2MZVL\\McKeeman - 1998 - Differential Testing for Software.pdf:application/pdf},
+}
+
+@inproceedings{randomTesting,
+	address = {New York, NY, USA},
+	series = {{PLDI} '11},
+	title = {Finding and understanding bugs in {C} compilers},
+	isbn = {978-1-4503-0663-8},
+	url = {https://dl.acm.org/doi/10.1145/1993498.1993532},
+	doi = {10.1145/1993498.1993532},
+	abstract = {Compilers should be correct. To improve the quality of C compilers, we created Csmith, a randomized test-case generation tool, and spent three years using it to find compiler bugs. During this period we reported more than 325 previously unknown bugs to compiler developers. Every compiler we tested was found to crash and also to silently generate wrong code when presented with valid input. In this paper we present our compiler-testing tool and the results of our bug-hunting study. Our first contribution is to advance the state of the art in compiler testing. Unlike previous tools, Csmith generates programs that cover a large subset of C while avoiding the undefined and unspecified behaviors that would destroy its ability to automatically find wrong-code bugs. Our second contribution is a collection of qualitative and quantitative results about the bugs we have found in open-source C compilers.},
+	urldate = {2023-08-19},
+	booktitle = {Proceedings of the 32nd {ACM} {SIGPLAN} {Conference} on {Programming} {Language} {Design} and {Implementation}},
+	publisher = {Association for Computing Machinery},
+	author = {Yang, Xuejun and Chen, Yang and Eide, Eric and Regehr, John},
+	month = jun,
+	year = {2011},
+	keywords = {automated testing, compiler defect, compiler testing, random program generation, random testing},
+	pages = {283--294},
+	file = {Full Text PDF:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\FMK5ESHF\\Yang et al. - 2011 - Finding and understanding bugs in C compilers.pdf:application/pdf},
+}
+
+@article{compcertVerification,
+	title = {Formal verification of a realistic compiler},
+	volume = {52},
+	issn = {0001-0782, 1557-7317},
+	url = {https://dl.acm.org/doi/10.1145/1538788.1538814},
+	doi = {10.1145/1538788.1538814},
+	abstract = {This paper reports on the development and formal veriﬁcation (proof of semantic preservation) of CompCert, a compiler from Clight (a large subset of the C programming language) to PowerPC assembly code, using the Coq proof assistant both for programming the compiler and for proving its correctness. Such a veriﬁed compiler is useful in the context of critical software and its formal veriﬁcation: the veriﬁcation of the compiler guarantees that the safety properties proved on the source code hold for the executable compiled code as well.},
+	language = {en},
+	number = {7},
+	urldate = {2023-08-19},
+	journal = {Communications of the ACM},
+	author = {Leroy, Xavier},
+	month = jul,
+	year = {2009},
+	pages = {107--115},
+	file = {Leroy - 2009 - Formal verification of a realistic compiler.pdf:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\9YIU2FJC\\Leroy - 2009 - Formal verification of a realistic compiler.pdf:application/pdf},
+}
+
+@misc{graal,
+	title        = {{GraalVM}: Run Programs Faster Anywhere},
+	author       = {Oracle},
+	year         = 2020,
+	url          = {https://github.com/oracle/graal}
+}
+
+@misc{llvm,
+	title = {The {LLVM} {Compiler} {Infrastructure} {Project}},
+	url = {https://llvm.org/},
+	urldate = {2023-08-20},
+	file = {The LLVM Compiler Infrastructure Project:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\AJCYBM5G\\llvm.org.html:text/html},
+}
+
+@inproceedings{AliveInLean,
+	title        = {{AliveInLean}: A Verified {LLVM} Peephole Optimization Verifier},
+	author       = {Lee, Juneyoung and Hur, Chung-Kil and Lopes, Nuno P.},
+	year         = 2019,
+	booktitle    = {Computer Aided Verification},
+	publisher    = {Springer International Publishing},
+	address      = {Cham},
+	pages        = {445-455},
+	doi          = {10.1007/978-3-030-25543-5_25},
+	isbn         = {978-3-030-25543-5},
+	editor       = {Dillig, Isil and Tasiran, Serdar},
+	abstract     = {
+		Ensuring that compiler optimizations are correct is important for the
+		reliability of the entire software ecosystem, since all software is compiled.
+		Alive [12] is a tool for verifying LLVM's peephole optimizations. Since Alive
+		was released, it has helped compiler developers proactively find dozens of
+		bugs in LLVM, avoiding potentially hazardous miscompilations. Despite having
+		verified many LLVM optimizations so far, Alive is itself not verified, which
+		has led to at least once declaring an optimization correct when it was not.
+	},
+	annotate     = {
+		Presents an optimization verifier for LLVM written in Lean. Improving on the
+		prior work of Alive which relies on the trusted code base of the LLVM
+		semantics, verification condition generation, and the SMT solver. This paper
+		addresses the trusted semantics of LLVM via randomly generated IR programs.
+		The trust of the SMT solver is addressed by comparing the SMT expressions
+		with equivalent expressions in Lean. The implementation is limited to integer
+		transformations ignoring procedure calls.
+	}
+}
+
+@inproceedings{Alive2,
+	address = {Virtual Canada},
+	title = {Alive2: bounded translation validation for {LLVM}},
+	isbn = {978-1-4503-8391-2},
+	shorttitle = {Alive2},
+	url = {https://dl.acm.org/doi/10.1145/3453483.3454030},
+	doi = {10.1145/3453483.3454030},
+	abstract = {We designed, implemented, and deployed Alive2: a bounded translation validation tool for the LLVM compiler’s intermediate representation (IR). It limits resource consumption by, for example, unrolling loops up to some bound, which means there are circumstances in which it misses bugs. Alive2 is designed to avoid false alarms, is fully automatic through the use of an SMT solver, and requires no changes to LLVM. By running Alive2 over LLVM’s unit test suite, we discovered and reported 47 new bugs, 28 of which have been fixed already. Moreover, our work has led to eight patches to the LLVM Language Reference—the definitive description of the semantics of its IR—and we have participated in numerous discussions with the goal of clarifying ambiguities and fixing errors in these semantics. Alive2 is open source and we also made it available on the web, where it has active users from the LLVM community.},
+	language = {en},
+	urldate = {2023-08-19},
+	booktitle = {Proceedings of the 42nd {ACM} {SIGPLAN} {International} {Conference} on {Programming} {Language} {Design} and {Implementation}},
+	publisher = {ACM},
+	author = {Lopes, Nuno P. and Lee, Juneyoung and Hur, Chung-Kil and Liu, Zhengyang and Regehr, John},
+	month = jun,
+	year = {2021},
+	pages = {65--79},
+	file = {Lopes et al. - 2021 - Alive2 bounded translation validation for LLVM.pdf:C\:\\Users\\Achmad Afriza\\Zotero\\storage\\R263V8IH\\Lopes et al. - 2021 - Alive2 bounded translation validation for LLVM.pdf:application/pdf},
 }

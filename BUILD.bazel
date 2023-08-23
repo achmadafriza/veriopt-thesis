@@ -62,7 +62,7 @@ latex_document(
     ) + TEX_DEPS,
     format = "pdf",
     cmd_flags = ["--bibtex-cmd=biber"],
-    main = "proposal/main.tex",
+    main = "proposal/proposal.tex",
 )
 
 

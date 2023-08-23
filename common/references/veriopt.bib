@@ -1,0 +1,179 @@
+@inproceedings{ATVA21_GraalVM_IR_Semantics,
+	title        = {A Formal Semantics of the {GraalVM} Intermediate Representation},
+	author       = {Webb, Brae J. and Utting, Mark and Hayes, Ian J.},
+	month        = oct,
+	booktitle    = {Automated Technology for Verification and Analysis},
+	publisher    = {Springer International Publishing},
+	address      = {Cham},
+	series       = {Lecture Notes in Computer Science},
+	volume       = 12971,
+	pages        = {111--126},
+	doi          = {10.1007/978-3-030-88885-5_8},
+	isbn         = {978-3-030-88885-5},
+	issn         = {0302-9743},
+	editor       = {Hou, Zhe and Ganesh, Vijay},
+	conference   = {
+		19th International Symposium on Automated Technology for Verification and
+		Analysis (ATVA 2021), 18 - 22 October 2021, Gold Coast (Online), Australia
+	},
+	submitted    = {Submitted 24 April 2021},
+	accepted     = {Accepted 5 June 2021},
+	online       = {Online ??},
+	for          = {080309 (Software Engineering)},
+	seo          = {890299 (Computer Software and Services not elsewhere classified)},
+	project      = {Veriopt},
+	abstract     = {
+		The optimization phase of a compiler is responsible for transforming an
+		intermediate representation (IR) of a program into a more efficient form.
+		Modern optimizers, such as that used in the GraalVM compiler, use an IR
+		consisting of a sophisticated graph data structure that combines data flow
+		and control flow into the one structure. As part of a wider project on the
+		verification of optimization passes of GraalVM, this paper describes a
+		semantics for its IR within Isabelle/HOL. The semantics consists of a
+		big-step operational semantics for data nodes (which are represented in a
+		graph-based static single assignment (SSA) form) and a small-step operational
+		semantics for handling control flow including heap-based reads and writes,
+		exceptions, and method calls. We have proved a suite of canonicalization
+		optimizations and conditional elimination optimizations with respect to the
+		semantics.
+	},
+	year         = 2021
+}
+@inproceedings{ATVA21_GraalVM_IR_Semantics_censor,
+	title        = {A Formal Semantics of the {GraalVM} Intermediate Representation},
+	author       = {\censor{Webb, Brae J. and Utting, Mark and Hayes, Ian J.}},
+	month        = oct,
+	booktitle    = {Automated Technology for Verification and Analysis},
+	publisher    = {Springer International Publishing},
+	address      = {Cham},
+	series       = {Lecture Notes in Computer Science},
+	volume       = 12971,
+	pages        = {111--126},
+	doi          = {10.1007/978-3-030-88885-5_8},
+	isbn         = {978-3-030-88885-5},
+	issn         = {0302-9743},
+	editor       = {Hou, Zhe and Ganesh, Vijay},
+	conference   = {
+		19th International Symposium on Automated Technology for Verification and
+		Analysis (ATVA 2021), 18 - 22 October 2021, Gold Coast (Online), Australia
+	},
+	submitted    = {Submitted 24 April 2021},
+	accepted     = {Accepted 5 June 2021},
+	online       = {Online ??},
+	for          = {080309 (Software Engineering)},
+	seo          = {890299 (Computer Software and Services not elsewhere classified)},
+	project      = {Veriopt},
+	abstract     = {
+		The optimization phase of a compiler is responsible for transforming an
+		intermediate representation (IR) of a program into a more efficient form.
+		Modern optimizers, such as that used in the GraalVM compiler, use an IR
+		consisting of a sophisticated graph data structure that combines data flow
+		and control flow into the one structure. As part of a wider project on the
+		verification of optimization passes of GraalVM, this paper describes a
+		semantics for its IR within Isabelle/HOL. The semantics consists of a
+		big-step operational semantics for data nodes (which are represented in a
+		graph-based static single assignment (SSA) form) and a small-step operational
+		semantics for handling control flow including heap-based reads and writes,
+		exceptions, and method calls. We have proved a suite of canonicalization
+		optimizations and conditional elimination optimizations with respect to the
+		semantics.
+	},
+	year         = 2021
+}
+
+@inproceedings{Term_Graph_Optimizations,
+	author       = {Webb, Brae J. and Hayes, Ian J. and Utting, Mark},
+	title        = {Verifying Term Graph Optimizations Using {Isabelle/HOL}},
+	isbn         = {9798400700262},
+	publisher    = {Association for Computing Machinery},
+	address      = {New York, NY, USA},
+	url          = {https://doi.org/10.1145/3573105.3575673},
+	doi          = {10.1145/3573105.3575673},
+	abstract     = {
+		Our objective is to formally verify the correctness of the hundreds of expression
+		optimization rules used within the GraalVM compiler.
+		When defining the semantics of a programming language,
+		expressions naturally form abstract syntax trees, or, terms.
+		However, in order to facilitate sharing of common subexpressions,
+		modern compilers represent expressions as term graphs.
+		Defining the semantics of term graphs is more complicated than
+		defining the semantics of their equivalent term representations.
+		More significantly, defining optimizations directly on term graphs and
+		proving semantics preservation is considerably more complicated than
+		on the equivalent term representations.
+		On terms, optimizations can be expressed as conditional term rewriting rules,
+		and proofs that the rewrites are semantics preserving are relatively straightforward.
+		In this paper, we explore an approach to using term rewrites to verify
+		term graph transformations of optimizations within the GraalVM compiler.
+		This approach significantly reduces the overall verification effort and
+		allows for simpler encoding of optimization rules.
+	},
+	booktitle = {Proceedings of the 12th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+	pages = {320–333},
+	numpages = {14},
+	keywords = {sea-of-nodes intermediate representation, GraalVM compiler, verified code optimizer, Isabelle/HOL},
+	location = {Boston, MA, USA},
+	series = {CPP 2023},
+	submitted    = {Submitted 22 Sep 2022},
+	accepted     = {Accepted 22 Nov 2022},
+	project      = {Veriopt},
+	year = {2023}
+}
+
+@inproceedings{Term_Graph_Optimizations_censor,
+	author       = {\censor{Webb, Brae J. and Hayes, Ian J. and Utting, Mark}},
+	title        = {Verifying Term Graph Optimizations Using {Isabelle/HOL}},
+	isbn         = {9798400700262},
+	publisher    = {Association for Computing Machinery},
+	address      = {New York, NY, USA},
+	url          = {https://doi.org/10.1145/3573105.3575673},
+	doi          = {10.1145/3573105.3575673},
+	abstract     = {
+		Our objective is to formally verify the correctness of the hundreds of expression
+		optimization rules used within the GraalVM compiler.
+		When defining the semantics of a programming language,
+		expressions naturally form abstract syntax trees, or, terms.
+		However, in order to facilitate sharing of common subexpressions,
+		modern compilers represent expressions as term graphs.
+		Defining the semantics of term graphs is more complicated than
+		defining the semantics of their equivalent term representations.
+		More significantly, defining optimizations directly on term graphs and
+		proving semantics preservation is considerably more complicated than
+		on the equivalent term representations.
+		On terms, optimizations can be expressed as conditional term rewriting rules,
+		and proofs that the rewrites are semantics preserving are relatively straightforward.
+		In this paper, we explore an approach to using term rewrites to verify
+		term graph transformations of optimizations within the GraalVM compiler.
+		This approach significantly reduces the overall verification effort and
+		allows for simpler encoding of optimization rules.
+	},
+	booktitle = {Proceedings of the 12th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+	pages = {320–333},
+	numpages = {14},
+	keywords = {sea-of-nodes intermediate representation, GraalVM compiler, verified code optimizer, Isabelle/HOL},
+	location = {Boston, MA, USA},
+	series = {CPP 2023},
+	submitted    = {Submitted 22 Sep 2022},
+	accepted     = {Accepted 22 Nov 2022},
+	project      = {Veriopt},
+	year = {2023}
+}
+
+
+@misc{veriopt:validation,
+	title        = {
+		Differential Testing of a Verification Framework for Compiler Optimizations
+		(Experience Paper)
+	},
+	author       = {Utting, Mark and Webb, Brae J. and Hayes, Ian J.},
+	publisher    = {arXiv},
+	doi          = {10.48550/ARXIV.2212.01748},
+	url          = {https://arxiv.org/abs/2212.01748},
+	copyright    = {Creative Commons Attribution 4.0 International},
+	keywords     = {
+		Logic in Computer Science (cs.LO), Programming Languages (cs.PL), Software
+		Engineering (cs.SE), FOS: Computer and information sciences, FOS: Computer
+		and information sciences
+	},
+	year         = 2022
+}
