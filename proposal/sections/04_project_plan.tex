@@ -6,12 +6,19 @@
 
 This project would require several milestones to be completed:
 \begin{enumerate}
-    \item Understanding Isabelle System (September);
-    \item Creating a Proof of Concept (PoC) for the Automated Testing Framework (September - January);
-    \item Refining the PoC to be usable in a production setting (February - May).
+    \item Understanding Isabelle System (September - October);
+    \item Creating a Proof of Concept (PoC) for the Automated Testing Framework (September - October);
+    \item Refining the PoC to be usable in a production setting (November - February).
 \end{enumerate}
 
-Furthermore, it would require a considerable amount of time for me to complete the requirements for the course, namely:
+However, due to the nature of the possible solutions of the framework, it could mean that the details and deadline 
+of the milestones could shift dramatically, as each of the solutions differs in their concept. Therefore, 
+each of the milestones would depict several common goals that need to be achieved in order to 
+provide value to the project. Furthermore, the project should allocate several months as a contingency for 
+bug-fixing and unexpected delays (March-May, about 30\% of the total project timeline).
+
+Furthermore, it would require a considerable amount of time for me to complete the requirements for the course,
+which would be done alongside the project milestones, namely:
 \begin{enumerate}
     \item Progress Seminar (Due 9 October 2023);
     \item Conference Paper (Due 9 May 2024);
@@ -19,33 +26,81 @@ Furthermore, it would require a considerable amount of time for me to complete t
     \item Thesis Submission (Due 3 June 2024).
 \end{enumerate}
 
-% \subsection{Milestones}
+\subsection{Milestones}
+\label{sec:Milestones}
 % Break your project down into component sub-goals and estimate how long
 % you expect each to take.
 
-% \subsubsection{Milestone 1: X}
-% \todo[inline]{Milestone 1}
-% \lipsum[62]
+\subsubsection{Milestone 1: Understanding Isabelle System}
 
-% \subsubsection{Milestone 2: Y}
-% \todo[inline]{Milestone 2}
-% \lipsum[63]
+Understanding Isabelle's system infrastructure would require the project to explore:
+\begin{enumerate}
+    \item Isabelle Server (September)
+    \item Isabelle/Scala (October, \emph{if needed})
+\end{enumerate}
 
-% \subsubsection{Milestone 3: Z}
-% \todo[inline]{Milestone 3}
-% \lipsum[64]
+Exploring the possible solutions can be done alongside Milestone 2.
+
+\subsubsection{Milestone 2: Creating a Proof of Concept}
+
+Creating a PoC would be done in several steps:
+\begin{enumerate}
+    \item Creating a PoC with no user interaction (September);
+          
+          This would allow the feasibility of possible solutions to be evaluated before the Progress Seminar.
+
+    \item Generating evaluation parameters and testing the PoC (October);
+\end{enumerate}
+
+\subsubsection{Milestone 3: Refining the Proof of Concept}
+
+Refining the PoC would be done in a similar manner to refining production services. It would be done in these steps:
+\begin{enumerate}
+    \item Defining the system architecture for a scalable service (November)
+    \item Extending the PoC into RESTful APIs and allowing concurrent access (November-December);
+    \item Implementing thorough error handling and logging (December);
+    \item Deployment of the service (January);
+    \item Integration tests and Stress tests (January-February).
+\end{enumerate}
 
 \subsection{Timeline}
+\todo[inline]{create a gantt chart for the milestones}
 \lipsum[1-2]
 
 \subsection{Risk Assessment}
 % What, if any, risks does your project pose.
 % What risks are there to your proposed timeline (technical or otherwise).
-\todo[inline]{Risk Assessment}
-\lipsum[65-66]
+
+There are several risks that need to be considered:
+\begin{itemize}
+    \item Complexity of utilizing Isabelle is understated (Critical);
+    
+          Mitigation:
+          \begin{itemize}
+            \item Allocating several months as a contingency plan for the timeline (min. 25\%);
+            \item Frequent consultation with supervisors.
+          \end{itemize}
+
+    \item The solution does not meet the key system requirements (High);
+    
+          Mitigation: Frequent discussion about the system specifications with supervisors.
+
+    \item Problems with personal devices, i.e. short-circuited motherboard (Medium);
+    
+          Mitigation:
+          \begin{itemize}
+            \item Frequent backups to the cloud;
+            \item Utilizing UQ-provided labs for development.
+          \end{itemize}
+
+    \item OHS risks (Low):
+    
+          Mitigation: The majority of the development would be done in a low-risk setting.
+\end{itemize}
 
 \subsection{Ethics Assessment}
 % Are there any ethical considerations involved in your project.
 % e.g. do you make use of sensitive or personal information.
-\todo[inline]{Ethics Assessment}
-\lipsum[67-68]
+
+Minimal ethical considerations are present in the project, due to the scope of the project only involving 
+software.

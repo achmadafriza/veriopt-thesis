@@ -101,7 +101,7 @@ As such, this option would be able to utilize all the functionalities of Isabell
 this option.
 
 However, the full complexity of Isabelle/Scala is unknown. Currently, Isabelle/Scala is not well documented and would require much of the 
-project's timeline to understand Isabelle/Scala. Furthermore, extending Isabelle/Scala \emph{could} means that the framework would take up 
+project's timeline to understand Isabelle/Scala. Furthermore, extending Isabelle/Scala \emph{could} mean that the framework would take up 
 much of the computing resources to execute Isabelle/ML functions locally.
 
 \subsection{Interpreter for DSL}
@@ -111,3 +111,34 @@ Building an interpreter for GraalVM's optimization DSL acts as a last resort to 
 amount of time to rework the DSL into the framework, and designing tools similar to Quickcheck (See \ref{sec:Quickcheck}) in order to satisfy the 
 system requirements. Reinventing the wheel would not be productive for the project, and it would result in a tool that is far inferior to Isabelle.
 Therefore, this option should be avoided \emph{if possible}.
+
+\pagebreak
+
+\subsection{User Interaction}
+
+The user's experience in using the framework is out of scope of this project. However, the full capabilities of the system must be demonstrated 
+by how the user interacts with the framework; i.e. parallel processing of an optimization phase. Therefore, a frontend that could showcase that would 
+be a RESTful API, where there can be multiple users using the same system with the same capabilities.
+
+\subsection{Evaluation}
+
+To evaluate the framework, the project would need to determine whether the proposed solution could evaluate each of the cases for an optimization phase:
+
+\begin{enumerate}
+      \item The optimization phase is obviously false;
+      
+            It would require test cases where a conjecture would be false, e.g. optimization phases where Quickcheck or Nitpick are able to find 
+            counterexamples from.
+  
+      \item The optimization phase is obviously true;
+      
+            It would require test cases where Isabelle could automatically prove a conjecture via Auto or Sledgehammer.
+  
+      \item The optimization phase would require manual proving by \emph{"proof experts"}.
+            
+            It would require test cases that is non-trivial.
+  
+  \end{enumerate}
+
+To generate each of the test cases, the project could refer to Veriopt's current workings on the optimization phase proofs and modify them. Each of the 
+test case could then be evaluated by the tool to determine whether it fits the requirements of the system.
