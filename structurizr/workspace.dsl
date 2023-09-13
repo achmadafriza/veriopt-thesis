@@ -36,7 +36,7 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
         isabelleML -> smt
         # externalIsabelleML -> smt
 
-        framework = softwareSystem "Automated Testing Framework" {
+        framework = softwareSystem "VeriTest" "Automated Testing Framework" "Java" {
             frontend = container "Framework Facade" "CLI / GUI" "Java"
 
             developer -> frontend

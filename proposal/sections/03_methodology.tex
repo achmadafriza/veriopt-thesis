@@ -1,35 +1,43 @@
 \section{Methodology}
+\label{sec:Methodology}
 
-The goal of this project would be to create an Automated Testing Framework for GraalVM's optimization DSL. This would represent another tool that the 
-developers of GraalVM could use to provide a \emph{certificate} towards their implementation code. In order to assist in verifying the optimization 
-phase, the tool would need to be able to determine whether:
+The goal of this project is to create VeriTest: an Automated Testing Framework for GraalVM's optimization DSL. This will represent another 
+tool that the developers of GraalVM could use to provide a \emph{certificate} towards their implementation code. To assist in verifying the 
+optimization phase, the tool would need to be able to classify each of the optimization phases (See Fig. \ref{fig:classification}). Furthermore, 
+there are several key non-functional requirements for the system that need to be satisfied (See Fig. \ref{fig:requirements}).
 
-\begin{enumerate}
-    \item The optimization phase is obviously false;
-    
-          This would require the tool to generate obvious counterexamples via Quickcheck (See \ref{sec:Quickcheck}) or Nitpick (See \ref{sec:Nitpick}).
+\begin{figure}[h]
+      \label{fig:classification}
+      \begin{enumerate}
+            \item The optimization phase is obviously false;
+            
+                  This would require the tool to generate obvious counterexamples via Quickcheck (See \ref{sec:Quickcheck}) or Nitpick 
+                  (See \ref{sec:Nitpick}).
+        
+            \item The optimization phase is obviously true;
+            
+                  This would require the tool to verify that Sledgehammer (See \ref{sec:Quickcheck}) can provide proof obligations for the 
+                  optimization phase \textbf{without} dynamically defining proof tactics.
+        
+            \item The optimization phase would require manual proving by \emph{"proof experts"}.
+                  
+                  This means that the optimization is non-trivial: Isabelle is not able to find an obvious counterexample, and proving would require 
+                  additional tactics or subgoals to be defined.
+      \end{enumerate}
+      \caption{Classification of an optimization phase}
+\end{figure}
 
-    \item The optimization phase is obviously true;
-    
-          This would require the tool to verify that Sledgehammer (See \ref{sec:Quickcheck}) is able to provide proof obligations for the 
-          optimization phase \textbf{without} defining proof tactics.
+\begin{figure}[h]
+      \label{fig:requirements}
+      \begin{enumerate}
+            \item Developers of GraalVM need to be able to integrate this easily into their test suite;
+            \item Developers of GraalVM can easily use this without understanding Isabelle;
+            \item \emph{If possible}, the system doesn't require enormous computing resources locally.
+      \end{enumerate}
+      \caption{Non-functional requirements of the Framework}
+\end{figure}
 
-    \item The optimization phase would require manual proving by \emph{"proof experts"}.
-          
-          This means that the optimization is non-trivial: Isabelle is not able to find an obvious counterexample, and proving would require 
-          additional tactics or subgoals to be defined.
-
-\end{enumerate}
-
-Furthermore, there are several key requirements for the system that need to be satisfied:
-
-\begin{enumerate}
-      \item Developers of GraalVM need to be able to integrate this easily into their test suite;
-      \item Developers of GraalVM can easily use this without understanding Isabelle;
-      \item \emph{If possible}, the system doesn't require enormous computing resources locally.
-\end{enumerate}
-
-To do this, it would require the project to explore whether it is even possible to utilize Isabelle as the core system of the framework. 
+To implement the tool, it would require the project to explore whether it is even possible to utilize Isabelle as the core system of the framework. 
 Hence, understanding Isabelle's implementation is crucial in order to achieve the goals of this project. At a glance, there are three options 
 to the project:
 
@@ -41,7 +49,7 @@ to the project:
 
 \begin{figure}[h]
       \centering
-      \includegraphics[width=0.6\textwidth]{structurizr-1-framework_overview_1.png}
+      \includegraphics[width=0.8\textwidth]{structurizr-1-framework_overview_1.png}
       \caption{Proposed Solution}
       \label{fig:SystemLandscape}
 \end{figure}
@@ -56,7 +64,7 @@ manner as Isabelle/jEdit \cite{isabelleSystem}. Therefore, it should be able to 
 
 \begin{figure}[h]
       \centering
-      \includegraphics[width=0.6\textwidth]{structurizr-1-isabelle_overview_1.png}
+      \includegraphics[width=1\textwidth]{structurizr-1-isabelle_overview_1.png}
       \caption{Isabelle System Overview}
       \label{fig:IsabelleSystem}
 \end{figure}
@@ -70,7 +78,7 @@ functionality of Isabelle, harboring all the tools needed for proving theorems. 
 
 \begin{figure}[h]
       \centering
-      \includegraphics[width=0.8\textwidth]{structurizr-1-isabelle_client_server_1.png}
+      \includegraphics[width=1\textwidth]{structurizr-1-isabelle_client_server_1.png}
       \caption{Utilizing Isabelle Client - Server interaction}
       \label{fig:IsabelleServer}
 \end{figure}
@@ -90,7 +98,7 @@ Furthermore, the full capabilities of Isabelle Server need to be explored in ord
 
 \begin{figure}[h]
       \centering
-      \includegraphics[width=0.8\textwidth]{structurizr-1-isabelle_scala_1.png}
+      \includegraphics[width=1\textwidth]{structurizr-1-isabelle_scala_1.png}
       \caption{Extending Isabelle/Scala}
       \label{fig:IsabelleScala}
 \end{figure}
@@ -116,29 +124,20 @@ Therefore, this option should be avoided \emph{if possible}.
 
 \subsection{User Interaction}
 
-The user's experience in using the framework is out of scope of this project. However, the full capabilities of the system must be demonstrated 
+The user's experience in using the framework is out of the scope of this project. However, the full capabilities of the system must be demonstrated 
 by how the user interacts with the framework; i.e. parallel processing of an optimization phase. Therefore, a frontend that could showcase that would 
-be a RESTful API, where there can be multiple users using the same system with the same capabilities.
+be a RESTful API, where there can be multiple users using the same system with the same capabilities. However, it is expected that each of the 
+classifications that is run inside the framework shouldn't interfere with one another. This means that each user request should be stateless.
 
 \subsection{Evaluation}
+\label{sec:Evaluation}
 
-To evaluate the framework, the project would need to determine whether the proposed solution could evaluate each of the cases for an optimization phase:
+To evaluate the usefulness of the framework, the project would need to determine whether the proposed solution could classify an optimization phase, 
+following Fig. \ref{fig:classification}. Each of the test cases is then evaluated based on their accuracy of classification. To generate each of the 
+test cases, the project could refer to Veriopt's current workings on the optimization phase proofs and modify them. This would answer the 2\(^{nd}\) 
+research question of this project.
 
-\begin{enumerate}
-      \item The optimization phase is obviously false;
-      
-            It would require test cases where a conjecture would be false, e.g. optimization phases where Quickcheck or Nitpick are able to find 
-            counterexamples from.
-  
-      \item The optimization phase is obviously true;
-      
-            It would require test cases where Isabelle could automatically prove a conjecture via Auto or Sledgehammer.
-  
-      \item The optimization phase would require manual proving by \emph{"proof experts"}.
-            
-            It would require test cases that is non-trivial.
-  
-  \end{enumerate}
-
-To generate each of the test cases, the project could refer to Veriopt's current workings on the optimization phase proofs and modify them. Each of the 
-test case could then be evaluated by the tool to determine whether it fits the requirements of the system.
+To evaluate the 3\(^{rd}\) research question of this project, we could simulate the GraalVM developer's usage of VeriTest multiple times in 
+the same environment, averaging the running time of each simulation. In essence, we would be stress-testing the tool to see its limitations.
+To stress-test the framework, we could use the same test cases over concurrent simulations, as it is expected for the system to compartmentalize 
+each request.

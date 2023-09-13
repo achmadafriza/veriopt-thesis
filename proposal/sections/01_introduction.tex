@@ -1,3 +1,4 @@
+\setcounter{page}{1}
 \section{Introduction}
 % From the Project Proposal marking sheet:
 %   - Define your topic such that there is no doubt about the intended
@@ -5,7 +6,7 @@
 %   - Include a project outline and clear statement of purpose. 
 %   - Show substantial evidence of initiative.
 
-While compilers are deemed to be deterministic, unwanted errors would sometimes happen. This is due to: common pitfalls of the 
+While compilers are generally believed to be correct, unwanted errors would sometimes happen. This is due to: common pitfalls of the 
 language it's written in are \emph{just} accepted by the community; edge cases of the language are not well considered; or by simply making a 
 mistake inside the implementation \cite[Sec. 1.2]{CompilerOptimization}. Human mistakes are natural in human-made software. As such, it is 
 critical to \emph{try} to minimize the intrinsic risks of error in compilers.
@@ -22,22 +23,52 @@ previous works done to introduce formal semantics for GraalVM's \cite{graal} Int
 done, i.e. CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrates the theoretical aspects of formal 
 verification into the practicality of using it in a production setting.
 
-This project would attempt to bridge the subset of the gap between the formal semantics of GraalVM and integrating it into GraalVM's test suite 
-\cite{Term_Graph_Optimizations}, focusing on creating an Automated Testing Framework for GraalVM's optimization DSL. The framework would represent an 
-automated test generation and, \emph{if possible}, automated simple proof generation. This would make it easy for GraalVM's developers to use 
-the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
+This project will attempt to bridge the subset of the gap between the formal semantics of GraalVM and integrating it into GraalVM's test suite 
+\cite{Term_Graph_Optimizations}. Hence, the project introduces VeriTest: an Automated Testing Framework for GraalVM's optimization DSL. 
+VeriTest will represent a fast feedback tool that GraalVM developers could integrate into their development workflow. This would make it easy for 
+GraalVM's developers to use the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
+Referring to the current development workflow of GraalVM \cite[Sec. 5.1]{Term_Graph_Optimizations}: 
 
-To implement an Automated Testing Framework for GraalVM's optimization DSL, there are several options for the project to explore 
-(in order of ideal solutions):
 \begin{enumerate}
-    \item Utilizing \mono{Isabelle Server} - \mono{Client} interactions \cite[Ch. 4]{isabelleSystem} to generate a test suite and simple proofs 
-          \cite{isabelleQuickcheck,isabelleProof,isabelleNitpick,isabelleSledgehammer};
-    \item Extend the system of \mono{Isabelle/Scala} to utilize the full functionality of Isabelle \cite[Ch. 5]{isabelleSystem};
-    \item Creating an interpreter for the DSL and applying a set of rules as a test suite.
+    \item GraalVM developers write or modify an optimization proof -- written in Veriopt's GraalVM IR DSL -- as a comment in the code.
+    \item The DSL would be passed into VeriTest by the developers with the following goals:
+        
+          \label{sec:toolGoals}
+          \begin{enumerate}
+            \item Find fast, obvious, feedback towards the DSL rule;
+            \item If it can't find any, then it would, later on, be passed to \emph{"proof experts"}.
+          \end{enumerate}
 \end{enumerate}
 
-However, verification that DSL matches the implementation of GraalVM would be out of the scope of this project. It would represent the thorough 
-2nd step of the compiler verification research thread \cite[pp. 5]{CompilerOptimization} -- similar to Alive2's \cite{Alive2} solution on formal 
-verification (See \ref{sec:Alive}); perhaps a future direction in Veriopt.
+Part \ref{sec:toolGoals} of the workflow would be the main questions that this project will attempt to solve, mainly:
 
-\todo[inline]{Describe the sections}
+\begin{enumerate}
+    \item Is it possible to extend the current workings of Veriopt in Isabelle to a tool that could provide feedback for the developers?    
+    
+          The feasibility of extending Isabelle will need to be explored as part of the project. There are several options for the project to explore 
+          (in order of ideal solutions):
+          \begin{enumerate}
+              \item Utilizing \mono{Isabelle Server} - \mono{Client} interactions \cite[Ch. 4]{isabelleSystem} to generate a test suite and 
+                    simple proofs \cite{isabelleQuickcheck,isabelleProof,isabelleNitpick,isabelleSledgehammer} (See Sec. \ref{sec:IsabelleServer});
+              \item Extend the system of \mono{Isabelle/Scala} to utilize the full functionality of Isabelle \cite[Ch. 5]{isabelleSystem}
+                    (See Sec. \ref{sec:IsabelleScala});
+              \item Creating an interpreter for the DSL and applying a set of rules as a test suite (See Sec. \ref{sec:DSLInterpreter}).
+          \end{enumerate}
+
+    \item Would the feedback be useful to GraalVM developers? (See Sec. \ref{sec:Evaluation})
+    \item How fast could the feedback be provided to GraalVM developers? (See Sec. \ref{sec:Evaluation})
+\end{enumerate}
+
+However, verification that DSL matches the implementation of GraalVM would be out of the scope of this project. It would represent a thorough 
+2nd step of the compiler verification research thread \cite[pp. 5]{CompilerOptimization} -- similar to Alive2's \cite{Alive2} solution on formal 
+verification (See Sec. \ref{sec:Alive}); perhaps a future direction in Veriopt.
+
+Furthermore, to explore the viability of this project, we need to consider past relevant works that have been done. Namely, we need to explore:
+
+\begin{enumerate}
+    \item The types of software testing done in the industry, and why it's unreliable (See Sec. \ref{sec:Testing});
+    \item How to leverage automated tools such as Isabelle (See Sec. \ref{sec:Isabelle});
+    \item How to verify the correctness of compiler (See Sec. \ref{sec:verification});
+    \item How different projects vary in their approach to verifying the correctness of a compiler (See Sec. \ref{sec:CompCert}, 
+          \ref{sec:Alive}, and \ref{sec:Veriopt}).
+\end{enumerate}

@@ -34,6 +34,8 @@ TEX_DEPS = [
     "@bazel_latex//packages:upquote",
     "@bazel_latex//packages:xcolor",
     "@bazel_latex//packages:xkeyval",
+    "@bazel_latex//packages:collectbox",
+    "@texlive_texmf__texmf-dist__tex__latex__ragged2e",
     "@texlive_texmf__texmf-dist__tex__generic__hyph-utf8__loadhyph",  #lipsum
     "@texlive_texmf__texmf-dist__tex__generic__hyph-utf8__patterns__tex",  #lipsum
     "@texlive_texmf__texmf-dist__tex__latex__appendix",
@@ -46,6 +48,8 @@ TEX_DEPS = [
     "@texlive_texmf__texmf-dist__tex__latex__pdflscape",
     "@texlive_texmf__texmf-dist__tex__latex__tocbibind",
     "@texlive_texmf__texmf-dist__tex__latex__todonotes",
+    "@texlive_texmf__texmf-dist__tex__latex__adjustbox",
+    "@texlive_texmf__texmf-dist__tex__latex__booktabs",
 ]
 
 
