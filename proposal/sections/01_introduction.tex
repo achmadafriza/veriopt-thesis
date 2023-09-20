@@ -6,21 +6,21 @@
 %   - Include a project outline and clear statement of purpose. 
 %   - Show substantial evidence of initiative.
 
-While compilers are generally believed to be correct, unwanted errors would sometimes happen. This is due to: common pitfalls of the 
-language it's written in are \emph{just} accepted by the community; edge cases of the language are not well considered; or by simply making a 
+While compilers are generally believed to be correct, unwanted errors would sometimes happen. This is due to: the common pitfalls of the 
+language it's written in are \emph{just} accepted by the community; edge cases of the language that are not well considered; or simply making a 
 mistake inside the implementation \cite[Sec. 1.2]{CompilerOptimization}. Human mistakes are natural in human-made software. As such, it is 
 critical to \emph{try} to minimize the intrinsic risks of error in compilers.
 
 Minimizing the risks of error is non-trivial. A suite of testing mechanisms is needed to ensure the reliability of software. 
 There are several ways to do this. For software, regression testing in the form of Unit, Integration, and System level tests are the 
-industry standard ways for mitigating risks \cite{testing}. Such testing suites are ideal for software with a human understandable behavior. However, 
+industry standard ways for mitigating risks \cite{testing}. Such testing suites are ideal for software with human-understandable behavior. However, 
 the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers is tedious and 
 time-consuming \cite{compcertVerification}.
 
 Another way to verify the behavior of compilers is to \textbf{formally} specify them \cite{compcertVerification}. This project follows up on 
 previous works done to introduce formal semantics for GraalVM's \cite{graal} Intermediate Representation (IR)
 \cite{ATVA21_GraalVM_IR_Semantics, Term_Graph_Optimizations} implemented in Isabelle \cite{IsabelleHOL}. There are similar works that have been 
-done, i.e. CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrates the theoretical aspects of formal 
+done, i.e. CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrate the theoretical aspects of formal 
 verification into the practicality of using it in a production setting.
 
 This project will attempt to bridge the subset of the gap between the formal semantics of GraalVM and integrating it into GraalVM's test suite 
@@ -45,13 +45,15 @@ Part \ref{sec:toolGoals} of the workflow would be the main questions that this p
 \begin{enumerate}
     \item Is it possible to extend the current workings of Veriopt in Isabelle to a tool that could provide feedback for the developers?    
     
-          The feasibility of extending Isabelle will need to be explored as part of the project. There are several options for the project to explore 
+          The feasibility of extending Isabelle needs to be explored as part of the project. There are several options for the project to explore 
           (in order of ideal solutions):
           \begin{enumerate}
-              \item Utilizing \mono{Isabelle Server} - \mono{Client} interactions \cite[Ch. 4]{isabelleSystem} to generate a test suite and 
+              \item Utilizing Isabelle Client - Server interactions \cite[Ch. 4]{isabelleSystem} to generate a test suite and 
                     simple proofs \cite{isabelleQuickcheck,isabelleProof,isabelleNitpick,isabelleSledgehammer} (See Sec. \ref{sec:IsabelleServer});
-              \item Extend the system of \mono{Isabelle/Scala} to utilize the full functionality of Isabelle \cite[Ch. 5]{isabelleSystem}
+              \item Extend the system of Isabelle/Scala to utilize the full functionality of Isabelle \cite[Ch. 5]{isabelleSystem}
                     (See Sec. \ref{sec:IsabelleScala});
+              \item Utilizing Isabelle CLI, similar to Veriopt's semi-automated approach \cite[Sec. 5.1]{Term_Graph_Optimizations} 
+                    (See Sec. \ref{sec:IsabelleCLI})
               \item Creating an interpreter for the DSL and applying a set of rules as a test suite (See Sec. \ref{sec:DSLInterpreter}).
           \end{enumerate}
 
@@ -68,7 +70,7 @@ Furthermore, to explore the viability of this project, we need to consider past 
 \begin{enumerate}
     \item The types of software testing done in the industry, and why it's unreliable (See Sec. \ref{sec:Testing});
     \item How to leverage automated tools such as Isabelle (See Sec. \ref{sec:Isabelle});
-    \item How to verify the correctness of compiler (See Sec. \ref{sec:verification});
+    \item How to verify the correctness of the compiler (See Sec. \ref{sec:verification});
     \item How different projects vary in their approach to verifying the correctness of a compiler (See Sec. \ref{sec:CompCert}, 
           \ref{sec:Alive}, and \ref{sec:Veriopt}).
 \end{enumerate}

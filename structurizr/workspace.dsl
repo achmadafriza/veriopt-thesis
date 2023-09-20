@@ -112,6 +112,15 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
         filtered "isabelle_scala" exclude "Isabelle Client - Server,Overview" "isabelle_scala_1"
 
 		styles {
+            element "Element" {
+                fontSize "34"
+            }
+            element "Boundary" {
+                fontSize "34"
+            }
+            element "Group" {
+                fontSize "34"
+            }
 			element desc {
 				width 400
 				height 100
