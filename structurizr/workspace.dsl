@@ -6,84 +6,77 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
 
 		proofExpert = person "Proof Expert"
         developer = person "GraalVM Developer"
+        
         jEdit = softwareSystem "Isabelle/jEdit" "IDE for Isabelle" {
             tags "Overview"
-        }
-        isabelle = softwareSystem "Isabelle" "Interactive Theorem Prover" {
-            tags "Isabelle Client - Server"
-            isabelleScala = container "Isabelle/Scala" "Frontend for Isabelle" "Scala" {
-                tags "Isabelle Client - Server"
-                isabelleClient = component "Isabelle Client" "Proxy for Isabelle Server" "Scala" {
-                    tags "Overview"
-                }
-                isabelleServer = component "Isabelle Server" "Wrapper for Isabelle ML" "Scala" {
-                    tags "Isabelle Client - Server"
-                    isabelleClient -> isabelleServer
-                }
-            }
-            isabelleML = container "Isabelle/ML" "Core Functionalities of Isabelle" "ML" {
-                tags "Isabelle Client - Server"
-            }
 
-            isabelleServer -> isabelleML
-            isabelleScala -> isabelleML
+            proofExpert -> jEdit "Uses Tool"
         }
-
-        jEdit -> isabelleScala
-        proofExpert -> jEdit
 
         smt = softwareSystem "SMT Solvers"
-        isabelleML -> smt
-        # externalIsabelleML -> smt
 
-        framework = softwareSystem "VeriTest" "Automated Testing Framework" "Java" {
-            frontend = container "Framework Facade" "CLI / GUI" "Java"
-
-            developer -> frontend
-
-            group "Core Framework" {
-                clientFacade = container "Isabelle Client's Facade" "Service to Hit Isabelle Server" "Java" {
-                    tags "Isabelle Client - Server"
-
-                    -> isabelleClient {
-                        tags "Overview"
-                    }
-                }
-                scalaFacade = container "Isabelle/Scala's Facade" "Service to manage Isabelle/Scala" "Java" {
-                    tags "Isabelle/Scala"
+        externalIsabelle = softwareSystem "Isabelle" "Interactive Theorem Prover" {
+            tags "Overview"
+            externalIsabelleScala = container "Isabelle/Scala" "Frontend for Isabelle" "Scala" {
+                tags "Overview"
+                
+                externalIsabelleClient = component "Isabelle Client" "Proxy for Isabelle Server" "Scala" {
+                    tags "Overview"
                 }
 
-                group "Internal Isabelle" {
-                    internalIsabelleML = container "Internal Isabelle/ML" "ML" {
-                        tags "Isabelle/Scala"
-                        tags "InternalIsabelle"
-                        -> smt {
-                            tags "Isabelle/Scala"
-                            tags "InternalIsabelle"
-                        }
-                    }
+                externalIsabelleServer = component "Isabelle Server" "Wrapper for Isabelle ML" "Scala" {
+                    tags "Overview"
 
-                    internalIsabelleScala = container "Internal Isabelle/Scala" "Scala" {
-                        tags "Isabelle/Scala"
-                        tags "InternalIsabelle"
-                        -> internalIsabelleML
-                        scalaFacade -> internalIsabelleScala
-                    }
-
-                    internalIsabelleClient = container "Internal Isabelle Client" "Proxy for Isabelle Server" "Scala" {
-                        tags "Isabelle Client - Server"
-                        tags "InternalIsabelle"
-                        -> isabelleServer
-                        clientFacade -> internalIsabelleClient
-                    }
+                    externalIsabelleClient -> externalIsabelleServer "Send Theories"
                 }
 
-                frontend -> clientFacade
-                frontend -> scalaFacade
+                jEdit -> externalIsabelleScala "Uses"
+            }
+            externalIsabelleML = container "Isabelle/ML" "Core Functionalities of Isabelle" "ML" {
+                tags "Overview"
+
+                externalIsabelleServer -> externalIsabelleML "Process Theories"
+                -> smt "Proof Predicates"
             }
         }
 
-        developer -> framework
+        framework = softwareSystem "VeriTest" "Automated Testing Framework" "Java" {
+            isabelle = container "Isabelle Server" "" "Internal" {
+                -> smt "Automated Proofing" {
+                    tags "InternalIsabelle"
+                }
+            }
+
+            service = container "Service" "" "Java" {
+                isabelleClient = component "Isabelle Client" "" "Subprocess" {
+                    -> isabelle "Process Theory"
+                }
+
+                -> externalIsabelleClient "Uses" {
+                    tags "Overview"
+                }
+
+                controller = component "Controller" "Handle User Requests" "Spring Boot REST Controller" {
+                    developer -> controller "Sends Optimization Rules to Proof"
+                }
+
+                isabelleService = component "Isabelle Service" "Facade for Isabelle" "Spring Bean" {
+                    controller -> isabelleService "Passes Rules"
+                }
+
+                isabelleClientInterface = component "Isabelle Client Interface" "" "Interface"
+
+                isabelleBridge = component "Abstract Isabelle Client" "Bridge Abstraction for Isabelle" "Abstract Class" {
+                    isabelleService -> isabelleBridge "Process Rule"
+                    -> isabelleClientInterface "Implements"
+                }
+
+                isabelleProcess = component "Isabelle Process" "Proxy for Isabelle Client Subprocess" "Spring Bean" {
+                    -> isabelleBridge "Extends"
+                    -> isabelleClient "Sends Commands and Theory"
+                }
+            }
+        }
 	}
 
 	views {
@@ -93,7 +86,7 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
 
         filtered "framework_overview" exclude "InternalIsabelle" "framework_overview_1"
 
-        container isabelle "isabelle_overview" "A High Level Overview of Isabelle" {
+        container externalIsabelle "isabelle_overview" "A High Level Overview of Isabelle" {
             include *
         }
 
@@ -103,23 +96,40 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
             include *
         }
 
-        filtered "isabelle_client_server" exclude "Isabelle/Scala,Overview" "isabelle_client_server_1"
+        filtered "isabelle_client_server" exclude "Overview" "isabelle_client_server_1"
 
-        container framework "isabelle_scala" "Extending Isabelle/Scala" {
+        component service "veritest_solution" "Overview of Veritest" {
             include *
+            include smt
         }
 
-        filtered "isabelle_scala" exclude "Isabelle Client - Server,Overview" "isabelle_scala_1"
+        filtered "veritest_solution" exclude "Overview" "veritest_solution_1"
+
+        # dynamic framework "graalvm_dev_workflow" {
+		# 	developer ->  frontend "Send an Optimization Rule"
+        #     frontend -> clientFacade "Pass Request"
+        #     clientFacade -> internalIsabelleClient "Handle Isabelle Communications"
+        #     internalIsabelleClient -> isabelle "Pass to Isabelle Server"
+        #     isabelle -> smt "Process Optimization Rule"
+        #     smt -> isabelle "Send Response"
+        #     isabelle -> internalIsabelleClient "Send Response"
+        #     internalIsabelleClient -> clientFacade "Send Response"
+        #     clientFacade -> frontend "Send Response"
+
+        #     frontend -> developer "Result: Found Counterexample"
+        #     frontend -> developer "Result: Found Proof"
+        #     frontend -> developer "Result: Can't decide!"
+		# }
 
 		styles {
             element "Element" {
-                fontSize "34"
+                fontSize "36"
             }
             element "Boundary" {
-                fontSize "34"
+                fontSize "36"
             }
             element "Group" {
-                fontSize "34"
+                fontSize "36"
             }
 			element desc {
 				width 400

@@ -1,636 +1,676 @@
 {
-  "id" : 1,
-  "name" : "Spring Context",
-  "description" : "Spring's surrounding architecture & dependencies",
-  "lastModifiedDate" : "2023-09-19T18:38:35Z",
-  "properties" : {
-    "structurizr.dsl" : "d29ya3NwYWNlICJTcHJpbmcgQ29udGV4dCIgIlNwcmluZydzIHN1cnJvdW5kaW5nIGFyY2hpdGVjdHVyZSAmIGRlcGVuZGVuY2llcyIgewoJbW9kZWwgewoJCXByb3BlcnRpZXMgewogICAgICAgICAgICAic3RydWN0dXJpenIuZ3JvdXBTZXBhcmF0b3IiICIvIgogICAgICAgIH0KCgkJcHJvb2ZFeHBlcnQgPSBwZXJzb24gIlByb29mIEV4cGVydCIKICAgICAgICBkZXZlbG9wZXIgPSBwZXJzb24gIkdyYWFsVk0gRGV2ZWxvcGVyIgogICAgICAgIGpFZGl0ID0gc29mdHdhcmVTeXN0ZW0gIklzYWJlbGxlL2pFZGl0IiAiSURFIGZvciBJc2FiZWxsZSIgewogICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICB9CiAgICAgICAgaXNhYmVsbGUgPSBzb2Z0d2FyZVN5c3RlbSAiSXNhYmVsbGUiICJJbnRlcmFjdGl2ZSBUaGVvcmVtIFByb3ZlciIgewogICAgICAgICAgICB0YWdzICJJc2FiZWxsZSBDbGllbnQgLSBTZXJ2ZXIiCiAgICAgICAgICAgIGlzYWJlbGxlU2NhbGEgPSBjb250YWluZXIgIklzYWJlbGxlL1NjYWxhIiAiRnJvbnRlbmQgZm9yIElzYWJlbGxlIiAiU2NhbGEiIHsKICAgICAgICAgICAgICAgIHRhZ3MgIklzYWJlbGxlIENsaWVudCAtIFNlcnZlciIKICAgICAgICAgICAgICAgIGlzYWJlbGxlQ2xpZW50ID0gY29tcG9uZW50ICJJc2FiZWxsZSBDbGllbnQiICJQcm94eSBmb3IgSXNhYmVsbGUgU2VydmVyIiAiU2NhbGEiIHsKICAgICAgICAgICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIGlzYWJlbGxlU2VydmVyID0gY29tcG9uZW50ICJJc2FiZWxsZSBTZXJ2ZXIiICJXcmFwcGVyIGZvciBJc2FiZWxsZSBNTCIgIlNjYWxhIiB7CiAgICAgICAgICAgICAgICAgICAgdGFncyAiSXNhYmVsbGUgQ2xpZW50IC0gU2VydmVyIgogICAgICAgICAgICAgICAgICAgIGlzYWJlbGxlQ2xpZW50IC0+IGlzYWJlbGxlU2VydmVyCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgaXNhYmVsbGVNTCA9IGNvbnRhaW5lciAiSXNhYmVsbGUvTUwiICJDb3JlIEZ1bmN0aW9uYWxpdGllcyBvZiBJc2FiZWxsZSIgIk1MIiB7CiAgICAgICAgICAgICAgICB0YWdzICJJc2FiZWxsZSBDbGllbnQgLSBTZXJ2ZXIiCiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGlzYWJlbGxlU2VydmVyIC0+IGlzYWJlbGxlTUwKICAgICAgICAgICAgaXNhYmVsbGVTY2FsYSAtPiBpc2FiZWxsZU1MCiAgICAgICAgfQoKICAgICAgICBqRWRpdCAtPiBpc2FiZWxsZVNjYWxhCiAgICAgICAgcHJvb2ZFeHBlcnQgLT4gakVkaXQKCiAgICAgICAgc210ID0gc29mdHdhcmVTeXN0ZW0gIlNNVCBTb2x2ZXJzIgogICAgICAgIGlzYWJlbGxlTUwgLT4gc210CiAgICAgICAgIyBleHRlcm5hbElzYWJlbGxlTUwgLT4gc210CgogICAgICAgIGZyYW1ld29yayA9IHNvZnR3YXJlU3lzdGVtICJWZXJpVGVzdCIgIkF1dG9tYXRlZCBUZXN0aW5nIEZyYW1ld29yayIgIkphdmEiIHsKICAgICAgICAgICAgZnJvbnRlbmQgPSBjb250YWluZXIgIkZyYW1ld29yayBGYWNhZGUiICJDTEkgLyBHVUkiICJKYXZhIgoKICAgICAgICAgICAgZGV2ZWxvcGVyIC0+IGZyb250ZW5kCgogICAgICAgICAgICBncm91cCAiQ29yZSBGcmFtZXdvcmsiIHsKICAgICAgICAgICAgICAgIGNsaWVudEZhY2FkZSA9IGNvbnRhaW5lciAiSXNhYmVsbGUgQ2xpZW50J3MgRmFjYWRlIiAiU2VydmljZSB0byBIaXQgSXNhYmVsbGUgU2VydmVyIiAiSmF2YSIgewogICAgICAgICAgICAgICAgICAgIHRhZ3MgIklzYWJlbGxlIENsaWVudCAtIFNlcnZlciIKCiAgICAgICAgICAgICAgICAgICAgLT4gaXNhYmVsbGVDbGllbnQgewogICAgICAgICAgICAgICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBzY2FsYUZhY2FkZSA9IGNvbnRhaW5lciAiSXNhYmVsbGUvU2NhbGEncyBGYWNhZGUiICJTZXJ2aWNlIHRvIG1hbmFnZSBJc2FiZWxsZS9TY2FsYSIgIkphdmEiIHsKICAgICAgICAgICAgICAgICAgICB0YWdzICJJc2FiZWxsZS9TY2FsYSIKICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBncm91cCAiSW50ZXJuYWwgSXNhYmVsbGUiIHsKICAgICAgICAgICAgICAgICAgICBpbnRlcm5hbElzYWJlbGxlTUwgPSBjb250YWluZXIgIkludGVybmFsIElzYWJlbGxlL01MIiAiTUwiIHsKICAgICAgICAgICAgICAgICAgICAgICAgdGFncyAiSXNhYmVsbGUvU2NhbGEiCiAgICAgICAgICAgICAgICAgICAgICAgIHRhZ3MgIkludGVybmFsSXNhYmVsbGUiCiAgICAgICAgICAgICAgICAgICAgICAgIC0+IHNtdCB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICB0YWdzICJJc2FiZWxsZS9TY2FsYSIKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRhZ3MgIkludGVybmFsSXNhYmVsbGUiCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgICAgIGludGVybmFsSXNhYmVsbGVTY2FsYSA9IGNvbnRhaW5lciAiSW50ZXJuYWwgSXNhYmVsbGUvU2NhbGEiICJTY2FsYSIgewogICAgICAgICAgICAgICAgICAgICAgICB0YWdzICJJc2FiZWxsZS9TY2FsYSIKICAgICAgICAgICAgICAgICAgICAgICAgdGFncyAiSW50ZXJuYWxJc2FiZWxsZSIKICAgICAgICAgICAgICAgICAgICAgICAgLT4gaW50ZXJuYWxJc2FiZWxsZU1MCiAgICAgICAgICAgICAgICAgICAgICAgIHNjYWxhRmFjYWRlIC0+IGludGVybmFsSXNhYmVsbGVTY2FsYQogICAgICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICAgICAgaW50ZXJuYWxJc2FiZWxsZUNsaWVudCA9IGNvbnRhaW5lciAiSW50ZXJuYWwgSXNhYmVsbGUgQ2xpZW50IiAiUHJveHkgZm9yIElzYWJlbGxlIFNlcnZlciIgIlNjYWxhIiB7CiAgICAgICAgICAgICAgICAgICAgICAgIHRhZ3MgIklzYWJlbGxlIENsaWVudCAtIFNlcnZlciIKICAgICAgICAgICAgICAgICAgICAgICAgdGFncyAiSW50ZXJuYWxJc2FiZWxsZSIKICAgICAgICAgICAgICAgICAgICAgICAgLT4gaXNhYmVsbGVTZXJ2ZXIKICAgICAgICAgICAgICAgICAgICAgICAgY2xpZW50RmFjYWRlIC0+IGludGVybmFsSXNhYmVsbGVDbGllbnQKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgZnJvbnRlbmQgLT4gY2xpZW50RmFjYWRlCiAgICAgICAgICAgICAgICBmcm9udGVuZCAtPiBzY2FsYUZhY2FkZQogICAgICAgICAgICB9CiAgICAgICAgfQoKICAgICAgICBkZXZlbG9wZXIgLT4gZnJhbWV3b3JrCgl9CgoJdmlld3MgewogICAgICAgIHN5c3RlbUxhbmRzY2FwZSAiZnJhbWV3b3JrX292ZXJ2aWV3IiAiQSBIaWdoIExldmVsIE92ZXJ2aWV3IG9mIHRoZSBTb2x1dGlvbiIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICB9CgogICAgICAgIGZpbHRlcmVkICJmcmFtZXdvcmtfb3ZlcnZpZXciIGV4Y2x1ZGUgIkludGVybmFsSXNhYmVsbGUiICJmcmFtZXdvcmtfb3ZlcnZpZXdfMSIKCiAgICAgICAgY29udGFpbmVyIGlzYWJlbGxlICJpc2FiZWxsZV9vdmVydmlldyIgIkEgSGlnaCBMZXZlbCBPdmVydmlldyBvZiBJc2FiZWxsZSIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICB9CgogICAgICAgIGZpbHRlcmVkICJpc2FiZWxsZV9vdmVydmlldyIgZXhjbHVkZSAiSW50ZXJuYWxJc2FiZWxsZSIgImlzYWJlbGxlX292ZXJ2aWV3XzEiCgogICAgICAgIGNvbnRhaW5lciBmcmFtZXdvcmsgImlzYWJlbGxlX2NsaWVudF9zZXJ2ZXIiICJVdGlsaXppbmcgSXNhYmVsbGUgQ2xpZW50IC0gU2VydmVyIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgIH0KCiAgICAgICAgZmlsdGVyZWQgImlzYWJlbGxlX2NsaWVudF9zZXJ2ZXIiIGV4Y2x1ZGUgIklzYWJlbGxlL1NjYWxhLE92ZXJ2aWV3IiAiaXNhYmVsbGVfY2xpZW50X3NlcnZlcl8xIgoKICAgICAgICBjb250YWluZXIgZnJhbWV3b3JrICJpc2FiZWxsZV9zY2FsYSIgIkV4dGVuZGluZyBJc2FiZWxsZS9TY2FsYSIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICB9CgogICAgICAgIGZpbHRlcmVkICJpc2FiZWxsZV9zY2FsYSIgZXhjbHVkZSAiSXNhYmVsbGUgQ2xpZW50IC0gU2VydmVyLE92ZXJ2aWV3IiAiaXNhYmVsbGVfc2NhbGFfMSIKCgkJc3R5bGVzIHsKICAgICAgICAgICAgZWxlbWVudCAiRWxlbWVudCIgewogICAgICAgICAgICAgICAgZm9udFNpemUgIjM0IgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkJvdW5kYXJ5IiB7CiAgICAgICAgICAgICAgICBmb250U2l6ZSAiMzQiCiAgICAgICAgICAgIH0KICAgICAgICAgICAgZWxlbWVudCAiR3JvdXAiIHsKICAgICAgICAgICAgICAgIGZvbnRTaXplICIzNCIKICAgICAgICAgICAgfQoJCQllbGVtZW50IGRlc2MgewoJCQkJd2lkdGggNDAwCgkJCQloZWlnaHQgMTAwCgkJCX0KCQkJZWxlbWVudCBhbmNpbGxhcnkgewoJCQkJYmFja2dyb3VuZCAjZjJjNjc5CgkJCQkvKiBjb2xvdXIgaXMgdGV4dCBjb2xvdXIuICovCgkJCQljb2xvdXIgIzAwMDAwMAoJCQl9CgkJCWVsZW1lbnQgbW9iaWxlIHsKCQkJCXNoYXBlIE1vYmlsZURldmljZVBvcnRyYWl0CgkJCQliYWNrZ3JvdW5kICNiM2RlZmYKCQkJCS8qIGNvbG91ciBpcyB0ZXh0IGNvbG91ci4gKi8KCQkJCWNvbG91ciAjMDAwMDAwCgkJCX0KCQkJZWxlbWVudCBkYiB7CgkJCQlzaGFwZSBDeWxpbmRlcgoJCQkJYmFja2dyb3VuZCAjYmZmZmRhCgkJCQkvKiBjb2xvdXIgaXMgdGV4dCBjb2xvdXIuICovCgkJCQljb2xvdXIgIzAwMDAwMAoJCQl9CgkJCWVsZW1lbnQgYnJvd3NlciB7CgkJCQlzaGFwZSBXZWJCcm93c2VyCgkJCQliYWNrZ3JvdW5kICNiM2RlZmYKCQkJCS8qIGNvbG91ciBpcyB0ZXh0IGNvbG91ci4gKi8KCQkJCWNvbG91ciAjMDAwMDAwCgkJCX0KCQkJZWxlbWVudCBmYWlsb3ZlciB7CgkJCQlvcGFjaXR5IDQ1CgkJCX0KCQl9CgogICAgICAgIHRoZW1lcyBkZWZhdWx0IGh0dHBzOi8vc3RhdGljLnN0cnVjdHVyaXpyLmNvbS90aGVtZXMvb3JhY2xlLWNsb3VkLWluZnJhc3RydWN0dXJlLTIwMjEuMDQuMzAvdGhlbWUuanNvbgoJfQp9Cg=="
-  },
   "configuration" : { },
+  "description" : "Spring's surrounding architecture & dependencies",
+  "documentation" : { },
+  "id" : 1,
+  "lastModifiedDate" : "2024-05-06T08:18:03Z",
   "model" : {
     "people" : [ {
       "id" : "1",
-      "tags" : "Element,Person",
+      "location" : "Unspecified",
+      "name" : "Proof Expert",
       "properties" : {
         "structurizr.dsl.identifier" : "proofexpert"
       },
-      "name" : "Proof Expert",
       "relationships" : [ {
-        "id" : "14",
-        "tags" : "Relationship",
+        "description" : "Uses Tool",
+        "destinationId" : "3",
+        "id" : "4",
+        "properties" : {
+          "structurizr.dsl.identifier" : "e9297f90-db68-45a4-b0ad-daf61ad9fec9"
+        },
         "sourceId" : "1",
-        "destinationId" : "3"
+        "tags" : "Relationship"
       } ],
-      "location" : "Unspecified"
+      "tags" : "Element,Person"
     }, {
       "id" : "2",
-      "tags" : "Element,Person",
+      "location" : "Unspecified",
+      "name" : "GraalVM Developer",
       "properties" : {
         "structurizr.dsl.identifier" : "developer"
       },
-      "name" : "GraalVM Developer",
       "relationships" : [ {
-        "id" : "20",
-        "tags" : "Relationship",
-        "sourceId" : "2",
-        "destinationId" : "19"
-      }, {
-        "id" : "21",
-        "sourceId" : "2",
-        "destinationId" : "18",
-        "linkedRelationshipId" : "20"
-      } ],
-      "location" : "Unspecified"
-    } ],
-    "softwareSystems" : [ {
-      "id" : "3",
-      "tags" : "Element,Software System,Overview",
-      "properties" : {
-        "structurizr.dsl.identifier" : "jedit"
-      },
-      "name" : "Isabelle/jEdit",
-      "description" : "IDE for Isabelle",
-      "relationships" : [ {
-        "id" : "12",
-        "tags" : "Relationship",
-        "sourceId" : "3",
-        "destinationId" : "5"
-      }, {
-        "id" : "13",
-        "sourceId" : "3",
-        "destinationId" : "4",
-        "linkedRelationshipId" : "12"
-      } ],
-      "location" : "Unspecified",
-      "documentation" : { }
-    }, {
-      "id" : "4",
-      "tags" : "Element,Software System,Isabelle Client - Server",
-      "properties" : {
-        "structurizr.dsl.identifier" : "isabelle"
-      },
-      "name" : "Isabelle",
-      "description" : "Interactive Theorem Prover",
-      "relationships" : [ {
-        "id" : "17",
-        "sourceId" : "4",
-        "destinationId" : "15",
-        "linkedRelationshipId" : "16"
-      } ],
-      "location" : "Unspecified",
-      "containers" : [ {
-        "id" : "5",
-        "tags" : "Element,Container,Isabelle Client - Server",
-        "properties" : {
-          "structurizr.dsl.identifier" : "isabellescala"
-        },
-        "name" : "Isabelle/Scala",
-        "description" : "Frontend for Isabelle",
-        "relationships" : [ {
-          "id" : "11",
-          "sourceId" : "5",
-          "destinationId" : "9",
-          "linkedRelationshipId" : "10"
-        } ],
-        "technology" : "Scala",
-        "components" : [ {
-          "id" : "6",
-          "tags" : "Element,Component,Overview",
-          "properties" : {
-            "structurizr.dsl.identifier" : "isabelleclient"
-          },
-          "name" : "Isabelle Client",
-          "description" : "Proxy for Isabelle Server",
-          "relationships" : [ {
-            "id" : "8",
-            "tags" : "Relationship",
-            "sourceId" : "6",
-            "destinationId" : "7"
-          } ],
-          "technology" : "Scala",
-          "documentation" : { }
-        }, {
-          "id" : "7",
-          "tags" : "Element,Component,Isabelle Client - Server",
-          "properties" : {
-            "structurizr.dsl.identifier" : "isabelleserver"
-          },
-          "name" : "Isabelle Server",
-          "description" : "Wrapper for Isabelle ML",
-          "relationships" : [ {
-            "id" : "10",
-            "tags" : "Relationship",
-            "sourceId" : "7",
-            "destinationId" : "9"
-          } ],
-          "technology" : "Scala",
-          "documentation" : { }
-        } ],
-        "documentation" : { }
-      }, {
-        "id" : "9",
-        "tags" : "Element,Container,Isabelle Client - Server",
-        "properties" : {
-          "structurizr.dsl.identifier" : "isabelleml"
-        },
-        "name" : "Isabelle/ML",
-        "description" : "Core Functionalities of Isabelle",
-        "relationships" : [ {
-          "id" : "16",
-          "tags" : "Relationship",
-          "sourceId" : "9",
-          "destinationId" : "15"
-        } ],
-        "technology" : "ML",
-        "documentation" : { }
-      } ],
-      "documentation" : { }
-    }, {
-      "id" : "15",
-      "tags" : "Element,Software System",
-      "properties" : {
-        "structurizr.dsl.identifier" : "smt"
-      },
-      "name" : "SMT Solvers",
-      "location" : "Unspecified",
-      "documentation" : { }
-    }, {
-      "id" : "18",
-      "tags" : "Element,Software System,Java",
-      "properties" : {
-        "structurizr.dsl.identifier" : "framework"
-      },
-      "name" : "VeriTest",
-      "description" : "Automated Testing Framework",
-      "relationships" : [ {
-        "id" : "26",
-        "sourceId" : "18",
-        "destinationId" : "6",
-        "linkedRelationshipId" : "23"
-      }, {
-        "id" : "27",
-        "sourceId" : "18",
-        "destinationId" : "5",
-        "linkedRelationshipId" : "23"
-      }, {
-        "id" : "28",
-        "sourceId" : "18",
-        "destinationId" : "4",
-        "linkedRelationshipId" : "23"
-      }, {
-        "id" : "32",
-        "sourceId" : "18",
-        "destinationId" : "15",
-        "linkedRelationshipId" : "31"
-      }, {
-        "id" : "40",
-        "sourceId" : "18",
-        "destinationId" : "7",
-        "linkedRelationshipId" : "37"
-      } ],
-      "location" : "Unspecified",
-      "containers" : [ {
-        "id" : "19",
-        "tags" : "Element,Container",
-        "properties" : {
-          "structurizr.dsl.identifier" : "frontend"
-        },
-        "name" : "Framework Facade",
-        "description" : "CLI / GUI",
-        "relationships" : [ {
-          "id" : "42",
-          "tags" : "Relationship",
-          "sourceId" : "19",
-          "destinationId" : "22"
-        }, {
-          "id" : "43",
-          "tags" : "Relationship",
-          "sourceId" : "19",
-          "destinationId" : "29"
-        } ],
-        "technology" : "Java",
-        "documentation" : { }
-      }, {
-        "id" : "30",
-        "tags" : "Element,Container,Isabelle/Scala,InternalIsabelle",
-        "properties" : {
-          "structurizr.dsl.identifier" : "internalisabelleml"
-        },
-        "name" : "Internal Isabelle/ML",
-        "description" : "ML",
-        "relationships" : [ {
-          "id" : "31",
-          "tags" : "Relationship,Isabelle/Scala,InternalIsabelle",
-          "sourceId" : "30",
-          "destinationId" : "15"
-        } ],
-        "group" : "Core Framework/Internal Isabelle",
-        "documentation" : { }
-      }, {
+        "description" : "Sends Optimization Rules to Proof",
+        "destinationId" : "32",
         "id" : "33",
-        "tags" : "Element,Container,Isabelle/Scala,InternalIsabelle",
         "properties" : {
-          "structurizr.dsl.identifier" : "internalisabellescala"
+          "structurizr.dsl.identifier" : "c459a20c-9f9a-4863-b499-add41a4f886a"
         },
-        "name" : "Internal Isabelle/Scala",
-        "description" : "Scala",
-        "relationships" : [ {
-          "id" : "34",
-          "tags" : "Relationship",
-          "sourceId" : "33",
-          "destinationId" : "30"
-        } ],
-        "group" : "Core Framework/Internal Isabelle",
-        "documentation" : { }
+        "sourceId" : "2",
+        "tags" : "Relationship"
       }, {
-        "id" : "22",
-        "tags" : "Element,Container,Isabelle Client - Server",
-        "properties" : {
-          "structurizr.dsl.identifier" : "clientfacade"
-        },
-        "name" : "Isabelle Client's Facade",
-        "description" : "Service to Hit Isabelle Server",
-        "relationships" : [ {
-          "id" : "23",
-          "tags" : "Relationship,Overview",
-          "sourceId" : "22",
-          "destinationId" : "6"
-        }, {
-          "id" : "24",
-          "sourceId" : "22",
-          "destinationId" : "5",
-          "linkedRelationshipId" : "23"
-        }, {
-          "id" : "25",
-          "sourceId" : "22",
-          "destinationId" : "4",
-          "linkedRelationshipId" : "23"
-        }, {
-          "id" : "41",
-          "tags" : "Relationship",
-          "sourceId" : "22",
-          "destinationId" : "36"
-        } ],
-        "group" : "Core Framework",
-        "technology" : "Java",
-        "documentation" : { }
+        "description" : "Sends Optimization Rules to Proof",
+        "destinationId" : "22",
+        "id" : "34",
+        "linkedRelationshipId" : "33",
+        "sourceId" : "2"
       }, {
-        "id" : "36",
-        "tags" : "Element,Container,Isabelle Client - Server,InternalIsabelle",
-        "properties" : {
-          "structurizr.dsl.identifier" : "internalisabelleclient"
-        },
-        "name" : "Internal Isabelle Client",
-        "description" : "Proxy for Isabelle Server",
-        "relationships" : [ {
-          "id" : "37",
-          "tags" : "Relationship",
-          "sourceId" : "36",
-          "destinationId" : "7"
-        }, {
-          "id" : "38",
-          "sourceId" : "36",
-          "destinationId" : "5",
-          "linkedRelationshipId" : "37"
-        }, {
-          "id" : "39",
-          "sourceId" : "36",
-          "destinationId" : "4",
-          "linkedRelationshipId" : "37"
-        } ],
-        "group" : "Core Framework/Internal Isabelle",
-        "technology" : "Scala",
-        "documentation" : { }
-      }, {
-        "id" : "29",
-        "tags" : "Element,Container,Isabelle/Scala",
-        "properties" : {
-          "structurizr.dsl.identifier" : "scalafacade"
-        },
-        "name" : "Isabelle/Scala's Facade",
-        "description" : "Service to manage Isabelle/Scala",
-        "relationships" : [ {
-          "id" : "35",
-          "tags" : "Relationship",
-          "sourceId" : "29",
-          "destinationId" : "33"
-        } ],
-        "group" : "Core Framework",
-        "technology" : "Java",
-        "documentation" : { }
+        "description" : "Sends Optimization Rules to Proof",
+        "destinationId" : "18",
+        "id" : "35",
+        "linkedRelationshipId" : "33",
+        "sourceId" : "2"
       } ],
-      "documentation" : { }
+      "tags" : "Element,Person"
     } ],
     "properties" : {
       "structurizr.groupSeparator" : "/"
-    }
-  },
-  "documentation" : { },
-  "views" : {
-    "systemLandscapeViews" : [ {
-      "key" : "framework_overview",
-      "order" : 1,
-      "description" : "A High Level Overview of the Solution",
-      "paperSize" : "A5_Landscape",
-      "dimensions" : {
-        "width" : 2480,
-        "height" : 1748
+    },
+    "softwareSystems" : [ {
+      "description" : "IDE for Isabelle",
+      "documentation" : { },
+      "id" : "3",
+      "location" : "Unspecified",
+      "name" : "Isabelle/jEdit",
+      "properties" : {
+        "structurizr.dsl.identifier" : "jedit"
       },
-      "enterpriseBoundaryVisible" : true,
-      "elements" : [ {
-        "id" : "1",
-        "x" : 95,
-        "y" : 285
-      }, {
-        "id" : "2",
-        "x" : 95,
-        "y" : 1040
-      }, {
-        "id" : "3",
-        "x" : 720,
-        "y" : 335
-      }, {
-        "id" : "4",
-        "x" : 1270,
-        "y" : 712
-      }, {
-        "id" : "15",
-        "x" : 1915,
-        "y" : 712
-      }, {
-        "id" : "18",
-        "x" : 720,
-        "y" : 1090
-      } ],
       "relationships" : [ {
-        "id" : "17"
+        "description" : "Uses",
+        "destinationId" : "7",
+        "id" : "11",
+        "properties" : {
+          "structurizr.dsl.identifier" : "bc293177-f9b5-429f-b216-c7398ba905aa"
+        },
+        "sourceId" : "3",
+        "tags" : "Relationship"
       }, {
-        "id" : "28"
-      }, {
-        "id" : "14"
-      }, {
-        "id" : "13"
-      }, {
-        "id" : "32"
-      }, {
-        "id" : "21"
-      } ]
-    } ],
-    "containerViews" : [ {
-      "key" : "isabelle_overview",
-      "order" : 3,
-      "description" : "A High Level Overview of Isabelle",
-      "softwareSystemId" : "4",
-      "dimensions" : {
-        "width" : 2637,
-        "height" : 1300
-      },
-      "externalSoftwareSystemBoundariesVisible" : true,
-      "elements" : [ {
-        "id" : "3",
-        "x" : 200,
-        "y" : 199
-      }, {
-        "id" : "15",
-        "x" : 1987,
-        "y" : 499
-      }, {
-        "id" : "5",
-        "x" : 787,
-        "y" : 499
-      }, {
-        "id" : "18",
-        "x" : 200,
-        "y" : 799
-      }, {
-        "id" : "9",
-        "x" : 1437,
-        "y" : 499
+        "description" : "Uses",
+        "destinationId" : "6",
+        "id" : "12",
+        "linkedRelationshipId" : "11",
+        "sourceId" : "3"
       } ],
-      "relationships" : [ {
-        "id" : "27"
-      }, {
-        "id" : "16"
-      }, {
-        "id" : "12"
-      }, {
-        "id" : "11"
-      }, {
-        "id" : "32"
-      } ]
+      "tags" : "Element,Software System,Overview"
     }, {
-      "key" : "isabelle_scala",
-      "order" : 7,
-      "description" : "Extending Isabelle/Scala",
-      "softwareSystemId" : "18",
-      "dimensions" : {
-        "width" : 3867,
-        "height" : 999
+      "documentation" : { },
+      "id" : "5",
+      "location" : "Unspecified",
+      "name" : "SMT Solvers",
+      "properties" : {
+        "structurizr.dsl.identifier" : "smt"
       },
-      "externalSoftwareSystemBoundariesVisible" : true,
-      "elements" : [ {
-        "id" : "33",
-        "x" : 1989,
-        "y" : 259
+      "tags" : "Element,Software System"
+    }, {
+      "containers" : [ {
+        "components" : [ {
+          "description" : "Proxy for Isabelle Server",
+          "documentation" : { },
+          "id" : "8",
+          "name" : "Isabelle Client",
+          "properties" : {
+            "structurizr.dsl.identifier" : "externalisabelleclient"
+          },
+          "relationships" : [ {
+            "description" : "Send Theories",
+            "destinationId" : "9",
+            "id" : "10",
+            "properties" : {
+              "structurizr.dsl.identifier" : "c60fad2b-12aa-4205-a72d-1a1f976e8b4a"
+            },
+            "sourceId" : "8",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Overview",
+          "technology" : "Scala"
+        }, {
+          "description" : "Wrapper for Isabelle ML",
+          "documentation" : { },
+          "id" : "9",
+          "name" : "Isabelle Server",
+          "properties" : {
+            "structurizr.dsl.identifier" : "externalisabelleserver"
+          },
+          "relationships" : [ {
+            "description" : "Process Theories",
+            "destinationId" : "13",
+            "id" : "14",
+            "properties" : {
+              "structurizr.dsl.identifier" : "8d71407a-afdd-45c2-be5e-eab7973cc037"
+            },
+            "sourceId" : "9",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component,Overview",
+          "technology" : "Scala"
+        } ],
+        "description" : "Frontend for Isabelle",
+        "documentation" : { },
+        "id" : "7",
+        "name" : "Isabelle/Scala",
+        "properties" : {
+          "structurizr.dsl.identifier" : "externalisabellescala"
+        },
+        "relationships" : [ {
+          "description" : "Process Theories",
+          "destinationId" : "13",
+          "id" : "15",
+          "linkedRelationshipId" : "14",
+          "sourceId" : "7"
+        } ],
+        "tags" : "Element,Container,Overview",
+        "technology" : "Scala"
       }, {
-        "id" : "22",
-        "x" : 1658,
-        "y" : 1137
-      }, {
-        "id" : "2",
-        "x" : 200,
-        "y" : 209
-      }, {
-        "id" : "36",
-        "x" : 2408,
-        "y" : 1137
-      }, {
-        "id" : "15",
-        "x" : 3217,
-        "y" : 259
-      }, {
-        "id" : "4",
-        "x" : 3158,
-        "y" : 1854
-      }, {
-        "id" : "29",
-        "x" : 1376,
-        "y" : 259
-      }, {
+        "description" : "Core Functionalities of Isabelle",
+        "documentation" : { },
+        "id" : "13",
+        "name" : "Isabelle/ML",
+        "properties" : {
+          "structurizr.dsl.identifier" : "externalisabelleml"
+        },
+        "relationships" : [ {
+          "description" : "Proof Predicates",
+          "destinationId" : "5",
+          "id" : "16",
+          "properties" : {
+            "structurizr.dsl.identifier" : "038fd0f6-dad0-4174-a379-1faa75ee2a22"
+          },
+          "sourceId" : "13",
+          "tags" : "Relationship"
+        } ],
+        "tags" : "Element,Container,Overview",
+        "technology" : "ML"
+      } ],
+      "description" : "Interactive Theorem Prover",
+      "documentation" : { },
+      "id" : "6",
+      "location" : "Unspecified",
+      "name" : "Isabelle",
+      "properties" : {
+        "structurizr.dsl.identifier" : "externalisabelle"
+      },
+      "relationships" : [ {
+        "description" : "Proof Predicates",
+        "destinationId" : "5",
+        "id" : "17",
+        "linkedRelationshipId" : "16",
+        "sourceId" : "6"
+      } ],
+      "tags" : "Element,Software System,Overview"
+    }, {
+      "containers" : [ {
+        "documentation" : { },
         "id" : "19",
-        "x" : 763,
-        "y" : 259
+        "name" : "Isabelle Server",
+        "properties" : {
+          "structurizr.dsl.identifier" : "isabelle"
+        },
+        "relationships" : [ {
+          "description" : "Automated Proofing",
+          "destinationId" : "5",
+          "id" : "20",
+          "properties" : {
+            "structurizr.dsl.identifier" : "da792394-d918-4db8-96b2-ea29d09074e6"
+          },
+          "sourceId" : "19",
+          "tags" : "Relationship,InternalIsabelle"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Internal"
       }, {
-        "id" : "30",
-        "x" : 2602,
-        "y" : 259
-      } ],
-      "relationships" : [ {
-        "id" : "17"
-      }, {
-        "id" : "25",
-        "vertices" : [ {
-          "x" : 2304,
-          "y" : 1616
-        } ]
-      }, {
-        "id" : "41"
-      }, {
-        "id" : "35"
-      }, {
-        "id" : "34"
-      }, {
-        "id" : "42"
-      }, {
-        "id" : "43"
-      }, {
-        "id" : "20"
-      }, {
-        "id" : "31"
-      }, {
-        "id" : "39"
-      } ]
-    }, {
-      "key" : "isabelle_client_server",
-      "order" : 5,
-      "description" : "Utilizing Isabelle Client - Server",
-      "softwareSystemId" : "18",
-      "dimensions" : {
-        "width" : 3747,
-        "height" : 999
-      },
-      "externalSoftwareSystemBoundariesVisible" : true,
-      "elements" : [ {
-        "id" : "33",
-        "x" : 2408,
-        "y" : 537
-      }, {
+        "components" : [ {
+          "documentation" : { },
+          "id" : "23",
+          "name" : "Isabelle Client",
+          "properties" : {
+            "structurizr.dsl.identifier" : "isabelleclient"
+          },
+          "relationships" : [ {
+            "description" : "Process Theory",
+            "destinationId" : "19",
+            "id" : "24",
+            "properties" : {
+              "structurizr.dsl.identifier" : "ec12f70d-67ea-4bba-bf28-6d2a8d07d19e"
+            },
+            "sourceId" : "23",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Subprocess"
+        }, {
+          "description" : "Handle User Requests",
+          "documentation" : { },
+          "id" : "32",
+          "name" : "Controller",
+          "properties" : {
+            "structurizr.dsl.identifier" : "controller"
+          },
+          "relationships" : [ {
+            "description" : "Passes Rules",
+            "destinationId" : "36",
+            "id" : "37",
+            "properties" : {
+              "structurizr.dsl.identifier" : "b413b8b0-2e5f-43b6-be7c-4acf176882d3"
+            },
+            "sourceId" : "32",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Spring Boot REST Controller"
+        }, {
+          "description" : "Facade for Isabelle",
+          "documentation" : { },
+          "id" : "36",
+          "name" : "Isabelle Service",
+          "properties" : {
+            "structurizr.dsl.identifier" : "isabelleservice"
+          },
+          "relationships" : [ {
+            "description" : "Process Rule",
+            "destinationId" : "39",
+            "id" : "40",
+            "properties" : {
+              "structurizr.dsl.identifier" : "ab7fa19a-ffe5-4853-b435-5fb5b2ee1025"
+            },
+            "sourceId" : "36",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Spring Bean"
+        }, {
+          "documentation" : { },
+          "id" : "38",
+          "name" : "Isabelle Client Interface",
+          "properties" : {
+            "structurizr.dsl.identifier" : "isabelleclientinterface"
+          },
+          "tags" : "Element,Component",
+          "technology" : "Interface"
+        }, {
+          "description" : "Bridge Abstraction for Isabelle",
+          "documentation" : { },
+          "id" : "39",
+          "name" : "Abstract Isabelle Client",
+          "properties" : {
+            "structurizr.dsl.identifier" : "isabellebridge"
+          },
+          "relationships" : [ {
+            "description" : "Implements",
+            "destinationId" : "38",
+            "id" : "41",
+            "properties" : {
+              "structurizr.dsl.identifier" : "6bb7745c-a2fb-4d29-9497-f2b4e6e350b0"
+            },
+            "sourceId" : "39",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Abstract Class"
+        }, {
+          "description" : "Proxy for Isabelle Client Subprocess",
+          "documentation" : { },
+          "id" : "42",
+          "name" : "Isabelle Process",
+          "properties" : {
+            "structurizr.dsl.identifier" : "isabelleprocess"
+          },
+          "relationships" : [ {
+            "description" : "Extends",
+            "destinationId" : "39",
+            "id" : "43",
+            "properties" : {
+              "structurizr.dsl.identifier" : "286d9504-20f2-429c-bc12-0016fb3f70a4"
+            },
+            "sourceId" : "42",
+            "tags" : "Relationship"
+          }, {
+            "description" : "Sends Commands and Theory",
+            "destinationId" : "23",
+            "id" : "44",
+            "properties" : {
+              "structurizr.dsl.identifier" : "baa94e15-b1bb-43db-a527-3522a1bbe6f7"
+            },
+            "sourceId" : "42",
+            "tags" : "Relationship"
+          } ],
+          "tags" : "Element,Component",
+          "technology" : "Spring Bean"
+        } ],
+        "documentation" : { },
         "id" : "22",
-        "x" : 1327,
-        "y" : 272
+        "name" : "Service",
+        "properties" : {
+          "structurizr.dsl.identifier" : "service"
+        },
+        "relationships" : [ {
+          "description" : "Process Theory",
+          "destinationId" : "19",
+          "id" : "25",
+          "linkedRelationshipId" : "24",
+          "sourceId" : "22"
+        }, {
+          "description" : "Uses",
+          "destinationId" : "8",
+          "id" : "26",
+          "properties" : {
+            "structurizr.dsl.identifier" : "f2a1bfd3-9963-439c-924a-34f20704850c"
+          },
+          "sourceId" : "22",
+          "tags" : "Relationship,Overview"
+        }, {
+          "description" : "Uses",
+          "destinationId" : "7",
+          "id" : "27",
+          "linkedRelationshipId" : "26",
+          "sourceId" : "22"
+        }, {
+          "description" : "Uses",
+          "destinationId" : "6",
+          "id" : "28",
+          "linkedRelationshipId" : "26",
+          "sourceId" : "22"
+        } ],
+        "tags" : "Element,Container",
+        "technology" : "Java"
+      } ],
+      "description" : "Automated Testing Framework",
+      "documentation" : { },
+      "id" : "18",
+      "location" : "Unspecified",
+      "name" : "VeriTest",
+      "properties" : {
+        "structurizr.dsl.identifier" : "framework"
+      },
+      "relationships" : [ {
+        "description" : "Automated Proofing",
+        "destinationId" : "5",
+        "id" : "21",
+        "linkedRelationshipId" : "20",
+        "sourceId" : "18"
       }, {
+        "description" : "Uses",
+        "destinationId" : "8",
+        "id" : "29",
+        "linkedRelationshipId" : "26",
+        "sourceId" : "18"
+      }, {
+        "description" : "Uses",
+        "destinationId" : "7",
+        "id" : "30",
+        "linkedRelationshipId" : "26",
+        "sourceId" : "18"
+      }, {
+        "description" : "Uses",
+        "destinationId" : "6",
+        "id" : "31",
+        "linkedRelationshipId" : "26",
+        "sourceId" : "18"
+      } ],
+      "tags" : "Element,Software System,Java"
+    } ]
+  },
+  "name" : "Spring Context",
+  "properties" : {
+    "structurizr.dsl" : "d29ya3NwYWNlICJTcHJpbmcgQ29udGV4dCIgIlNwcmluZydzIHN1cnJvdW5kaW5nIGFyY2hpdGVjdHVyZSAmIGRlcGVuZGVuY2llcyIgewoJbW9kZWwgewoJCXByb3BlcnRpZXMgewogICAgICAgICAgICAic3RydWN0dXJpenIuZ3JvdXBTZXBhcmF0b3IiICIvIgogICAgICAgIH0KCgkJcHJvb2ZFeHBlcnQgPSBwZXJzb24gIlByb29mIEV4cGVydCIKICAgICAgICBkZXZlbG9wZXIgPSBwZXJzb24gIkdyYWFsVk0gRGV2ZWxvcGVyIgogICAgICAgIAogICAgICAgIGpFZGl0ID0gc29mdHdhcmVTeXN0ZW0gIklzYWJlbGxlL2pFZGl0IiAiSURFIGZvciBJc2FiZWxsZSIgewogICAgICAgICAgICB0YWdzICJPdmVydmlldyIKCiAgICAgICAgICAgIHByb29mRXhwZXJ0IC0+IGpFZGl0ICJVc2VzIFRvb2wiCiAgICAgICAgfQoKICAgICAgICBzbXQgPSBzb2Z0d2FyZVN5c3RlbSAiU01UIFNvbHZlcnMiCgogICAgICAgIGV4dGVybmFsSXNhYmVsbGUgPSBzb2Z0d2FyZVN5c3RlbSAiSXNhYmVsbGUiICJJbnRlcmFjdGl2ZSBUaGVvcmVtIFByb3ZlciIgewogICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICAgICAgZXh0ZXJuYWxJc2FiZWxsZVNjYWxhID0gY29udGFpbmVyICJJc2FiZWxsZS9TY2FsYSIgIkZyb250ZW5kIGZvciBJc2FiZWxsZSIgIlNjYWxhIiB7CiAgICAgICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgZXh0ZXJuYWxJc2FiZWxsZUNsaWVudCA9IGNvbXBvbmVudCAiSXNhYmVsbGUgQ2xpZW50IiAiUHJveHkgZm9yIElzYWJlbGxlIFNlcnZlciIgIlNjYWxhIiB7CiAgICAgICAgICAgICAgICAgICAgdGFncyAiT3ZlcnZpZXciCiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgZXh0ZXJuYWxJc2FiZWxsZVNlcnZlciA9IGNvbXBvbmVudCAiSXNhYmVsbGUgU2VydmVyIiAiV3JhcHBlciBmb3IgSXNhYmVsbGUgTUwiICJTY2FsYSIgewogICAgICAgICAgICAgICAgICAgIHRhZ3MgIk92ZXJ2aWV3IgoKICAgICAgICAgICAgICAgICAgICBleHRlcm5hbElzYWJlbGxlQ2xpZW50IC0+IGV4dGVybmFsSXNhYmVsbGVTZXJ2ZXIgIlNlbmQgVGhlb3JpZXMiCiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgakVkaXQgLT4gZXh0ZXJuYWxJc2FiZWxsZVNjYWxhICJVc2VzIgogICAgICAgICAgICB9CiAgICAgICAgICAgIGV4dGVybmFsSXNhYmVsbGVNTCA9IGNvbnRhaW5lciAiSXNhYmVsbGUvTUwiICJDb3JlIEZ1bmN0aW9uYWxpdGllcyBvZiBJc2FiZWxsZSIgIk1MIiB7CiAgICAgICAgICAgICAgICB0YWdzICJPdmVydmlldyIKCiAgICAgICAgICAgICAgICBleHRlcm5hbElzYWJlbGxlU2VydmVyIC0+IGV4dGVybmFsSXNhYmVsbGVNTCAiUHJvY2VzcyBUaGVvcmllcyIKICAgICAgICAgICAgICAgIC0+IHNtdCAiUHJvb2YgUHJlZGljYXRlcyIKICAgICAgICAgICAgfQogICAgICAgIH0KCiAgICAgICAgZnJhbWV3b3JrID0gc29mdHdhcmVTeXN0ZW0gIlZlcmlUZXN0IiAiQXV0b21hdGVkIFRlc3RpbmcgRnJhbWV3b3JrIiAiSmF2YSIgewogICAgICAgICAgICBpc2FiZWxsZSA9IGNvbnRhaW5lciAiSXNhYmVsbGUgU2VydmVyIiAiIiAiSW50ZXJuYWwiIHsKICAgICAgICAgICAgICAgIC0+IHNtdCAiQXV0b21hdGVkIFByb29maW5nIiB7CiAgICAgICAgICAgICAgICAgICAgdGFncyAiSW50ZXJuYWxJc2FiZWxsZSIKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgfQoKICAgICAgICAgICAgc2VydmljZSA9IGNvbnRhaW5lciAiU2VydmljZSIgIiIgIkphdmEiIHsKICAgICAgICAgICAgICAgIGlzYWJlbGxlQ2xpZW50ID0gY29tcG9uZW50ICJJc2FiZWxsZSBDbGllbnQiICIiICJTdWJwcm9jZXNzIiB7CiAgICAgICAgICAgICAgICAgICAgLT4gaXNhYmVsbGUgIlByb2Nlc3MgVGhlb3J5IgogICAgICAgICAgICAgICAgfQoKICAgICAgICAgICAgICAgIC0+IGV4dGVybmFsSXNhYmVsbGVDbGllbnQgIlVzZXMiIHsKICAgICAgICAgICAgICAgICAgICB0YWdzICJPdmVydmlldyIKICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBjb250cm9sbGVyID0gY29tcG9uZW50ICJDb250cm9sbGVyIiAiSGFuZGxlIFVzZXIgUmVxdWVzdHMiICJTcHJpbmcgQm9vdCBSRVNUIENvbnRyb2xsZXIiIHsKICAgICAgICAgICAgICAgICAgICBkZXZlbG9wZXIgLT4gY29udHJvbGxlciAiU2VuZHMgT3B0aW1pemF0aW9uIFJ1bGVzIHRvIFByb29mIgogICAgICAgICAgICAgICAgfQoKICAgICAgICAgICAgICAgIGlzYWJlbGxlU2VydmljZSA9IGNvbXBvbmVudCAiSXNhYmVsbGUgU2VydmljZSIgIkZhY2FkZSBmb3IgSXNhYmVsbGUiICJTcHJpbmcgQmVhbiIgewogICAgICAgICAgICAgICAgICAgIGNvbnRyb2xsZXIgLT4gaXNhYmVsbGVTZXJ2aWNlICJQYXNzZXMgUnVsZXMiCiAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgaXNhYmVsbGVDbGllbnRJbnRlcmZhY2UgPSBjb21wb25lbnQgIklzYWJlbGxlIENsaWVudCBJbnRlcmZhY2UiICIiICJJbnRlcmZhY2UiCgogICAgICAgICAgICAgICAgaXNhYmVsbGVCcmlkZ2UgPSBjb21wb25lbnQgIkFic3RyYWN0IElzYWJlbGxlIENsaWVudCIgIkJyaWRnZSBBYnN0cmFjdGlvbiBmb3IgSXNhYmVsbGUiICJBYnN0cmFjdCBDbGFzcyIgewogICAgICAgICAgICAgICAgICAgIGlzYWJlbGxlU2VydmljZSAtPiBpc2FiZWxsZUJyaWRnZSAiUHJvY2VzcyBSdWxlIgogICAgICAgICAgICAgICAgICAgIC0+IGlzYWJlbGxlQ2xpZW50SW50ZXJmYWNlICJJbXBsZW1lbnRzIgogICAgICAgICAgICAgICAgfQoKICAgICAgICAgICAgICAgIGlzYWJlbGxlUHJvY2VzcyA9IGNvbXBvbmVudCAiSXNhYmVsbGUgUHJvY2VzcyIgIlByb3h5IGZvciBJc2FiZWxsZSBDbGllbnQgU3VicHJvY2VzcyIgIlNwcmluZyBCZWFuIiB7CiAgICAgICAgICAgICAgICAgICAgLT4gaXNhYmVsbGVCcmlkZ2UgIkV4dGVuZHMiCiAgICAgICAgICAgICAgICAgICAgLT4gaXNhYmVsbGVDbGllbnQgIlNlbmRzIENvbW1hbmRzIGFuZCBUaGVvcnkiCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICB9Cgl9CgoJdmlld3MgewogICAgICAgIHN5c3RlbUxhbmRzY2FwZSAiZnJhbWV3b3JrX292ZXJ2aWV3IiAiQSBIaWdoIExldmVsIE92ZXJ2aWV3IG9mIHRoZSBTb2x1dGlvbiIgewogICAgICAgICAgICBpbmNsdWRlICoKICAgICAgICB9CgogICAgICAgIGZpbHRlcmVkICJmcmFtZXdvcmtfb3ZlcnZpZXciIGV4Y2x1ZGUgIkludGVybmFsSXNhYmVsbGUiICJmcmFtZXdvcmtfb3ZlcnZpZXdfMSIKCiAgICAgICAgY29udGFpbmVyIGV4dGVybmFsSXNhYmVsbGUgImlzYWJlbGxlX292ZXJ2aWV3IiAiQSBIaWdoIExldmVsIE92ZXJ2aWV3IG9mIElzYWJlbGxlIiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgIH0KCiAgICAgICAgZmlsdGVyZWQgImlzYWJlbGxlX292ZXJ2aWV3IiBleGNsdWRlICJJbnRlcm5hbElzYWJlbGxlIiAiaXNhYmVsbGVfb3ZlcnZpZXdfMSIKCiAgICAgICAgY29udGFpbmVyIGZyYW1ld29yayAiaXNhYmVsbGVfY2xpZW50X3NlcnZlciIgIlV0aWxpemluZyBJc2FiZWxsZSBDbGllbnQgLSBTZXJ2ZXIiIHsKICAgICAgICAgICAgaW5jbHVkZSAqCiAgICAgICAgfQoKICAgICAgICBmaWx0ZXJlZCAiaXNhYmVsbGVfY2xpZW50X3NlcnZlciIgZXhjbHVkZSAiT3ZlcnZpZXciICJpc2FiZWxsZV9jbGllbnRfc2VydmVyXzEiCgogICAgICAgIGNvbXBvbmVudCBzZXJ2aWNlICJ2ZXJpdGVzdF9zb2x1dGlvbiIgIk92ZXJ2aWV3IG9mIFZlcml0ZXN0IiB7CiAgICAgICAgICAgIGluY2x1ZGUgKgogICAgICAgICAgICBpbmNsdWRlIHNtdAogICAgICAgIH0KCiAgICAgICAgZmlsdGVyZWQgInZlcml0ZXN0X3NvbHV0aW9uIiBleGNsdWRlICJPdmVydmlldyIgInZlcml0ZXN0X3NvbHV0aW9uXzEiCgogICAgICAgICMgZHluYW1pYyBmcmFtZXdvcmsgImdyYWFsdm1fZGV2X3dvcmtmbG93IiB7CgkJIyAJZGV2ZWxvcGVyIC0+ICBmcm9udGVuZCAiU2VuZCBhbiBPcHRpbWl6YXRpb24gUnVsZSIKICAgICAgICAjICAgICBmcm9udGVuZCAtPiBjbGllbnRGYWNhZGUgIlBhc3MgUmVxdWVzdCIKICAgICAgICAjICAgICBjbGllbnRGYWNhZGUgLT4gaW50ZXJuYWxJc2FiZWxsZUNsaWVudCAiSGFuZGxlIElzYWJlbGxlIENvbW11bmljYXRpb25zIgogICAgICAgICMgICAgIGludGVybmFsSXNhYmVsbGVDbGllbnQgLT4gaXNhYmVsbGUgIlBhc3MgdG8gSXNhYmVsbGUgU2VydmVyIgogICAgICAgICMgICAgIGlzYWJlbGxlIC0+IHNtdCAiUHJvY2VzcyBPcHRpbWl6YXRpb24gUnVsZSIKICAgICAgICAjICAgICBzbXQgLT4gaXNhYmVsbGUgIlNlbmQgUmVzcG9uc2UiCiAgICAgICAgIyAgICAgaXNhYmVsbGUgLT4gaW50ZXJuYWxJc2FiZWxsZUNsaWVudCAiU2VuZCBSZXNwb25zZSIKICAgICAgICAjICAgICBpbnRlcm5hbElzYWJlbGxlQ2xpZW50IC0+IGNsaWVudEZhY2FkZSAiU2VuZCBSZXNwb25zZSIKICAgICAgICAjICAgICBjbGllbnRGYWNhZGUgLT4gZnJvbnRlbmQgIlNlbmQgUmVzcG9uc2UiCgogICAgICAgICMgICAgIGZyb250ZW5kIC0+IGRldmVsb3BlciAiUmVzdWx0OiBGb3VuZCBDb3VudGVyZXhhbXBsZSIKICAgICAgICAjICAgICBmcm9udGVuZCAtPiBkZXZlbG9wZXIgIlJlc3VsdDogRm91bmQgUHJvb2YiCiAgICAgICAgIyAgICAgZnJvbnRlbmQgLT4gZGV2ZWxvcGVyICJSZXN1bHQ6IENhbid0IGRlY2lkZSEiCgkJIyB9CgoJCXN0eWxlcyB7CiAgICAgICAgICAgIGVsZW1lbnQgIkVsZW1lbnQiIHsKICAgICAgICAgICAgICAgIGZvbnRTaXplICIzNiIKICAgICAgICAgICAgfQogICAgICAgICAgICBlbGVtZW50ICJCb3VuZGFyeSIgewogICAgICAgICAgICAgICAgZm9udFNpemUgIjM2IgogICAgICAgICAgICB9CiAgICAgICAgICAgIGVsZW1lbnQgIkdyb3VwIiB7CiAgICAgICAgICAgICAgICBmb250U2l6ZSAiMzYiCiAgICAgICAgICAgIH0KCQkJZWxlbWVudCBkZXNjIHsKCQkJCXdpZHRoIDQwMAoJCQkJaGVpZ2h0IDEwMAoJCQl9CgkJCWVsZW1lbnQgYW5jaWxsYXJ5IHsKCQkJCWJhY2tncm91bmQgI2YyYzY3OQoJCQkJLyogY29sb3VyIGlzIHRleHQgY29sb3VyLiAqLwoJCQkJY29sb3VyICMwMDAwMDAKCQkJfQoJCQllbGVtZW50IG1vYmlsZSB7CgkJCQlzaGFwZSBNb2JpbGVEZXZpY2VQb3J0cmFpdAoJCQkJYmFja2dyb3VuZCAjYjNkZWZmCgkJCQkvKiBjb2xvdXIgaXMgdGV4dCBjb2xvdXIuICovCgkJCQljb2xvdXIgIzAwMDAwMAoJCQl9CgkJCWVsZW1lbnQgZGIgewoJCQkJc2hhcGUgQ3lsaW5kZXIKCQkJCWJhY2tncm91bmQgI2JmZmZkYQoJCQkJLyogY29sb3VyIGlzIHRleHQgY29sb3VyLiAqLwoJCQkJY29sb3VyICMwMDAwMDAKCQkJfQoJCQllbGVtZW50IGJyb3dzZXIgewoJCQkJc2hhcGUgV2ViQnJvd3NlcgoJCQkJYmFja2dyb3VuZCAjYjNkZWZmCgkJCQkvKiBjb2xvdXIgaXMgdGV4dCBjb2xvdXIuICovCgkJCQljb2xvdXIgIzAwMDAwMAoJCQl9CgkJCWVsZW1lbnQgZmFpbG92ZXIgewoJCQkJb3BhY2l0eSA0NQoJCQl9CgkJfQoKICAgICAgICB0aGVtZXMgZGVmYXVsdCBodHRwczovL3N0YXRpYy5zdHJ1Y3R1cml6ci5jb20vdGhlbWVzL29yYWNsZS1jbG91ZC1pbmZyYXN0cnVjdHVyZS0yMDIxLjA0LjMwL3RoZW1lLmpzb24KCX0KfQo="
+  },
+  "views" : {
+    "componentViews" : [ {
+      "containerId" : "22",
+      "description" : "Overview of Veritest",
+      "dimensions" : {
+        "height" : 1361,
+        "width" : 3750
+      },
+      "elements" : [ {
         "id" : "2",
         "x" : 199,
-        "y" : 222
+        "y" : 700
       }, {
-        "id" : "36",
-        "x" : 1916,
-        "y" : 272
-      }, {
-        "id" : "15",
-        "x" : 3096,
-        "y" : 272
-      }, {
-        "id" : "4",
-        "x" : 2505,
-        "y" : 272
-      }, {
-        "id" : "29",
-        "x" : 1658,
-        "y" : 537
+        "id" : "5",
+        "x" : 3099,
+        "y" : 220
       }, {
         "id" : "19",
-        "x" : 738,
-        "y" : 272
+        "x" : 3099,
+        "y" : 750
       }, {
-        "id" : "30",
-        "x" : 3158,
-        "y" : 837
+        "id" : "23",
+        "x" : 2374,
+        "y" : 750
+      }, {
+        "id" : "32",
+        "x" : 949,
+        "y" : 750
+      }, {
+        "id" : "36",
+        "x" : 1649,
+        "y" : 750
+      }, {
+        "id" : "38",
+        "x" : 949,
+        "y" : 220
+      }, {
+        "id" : "39",
+        "x" : 1649,
+        "y" : 220
+      }, {
+        "id" : "42",
+        "x" : 2374,
+        "y" : 220
       } ],
+      "externalContainerBoundariesVisible" : false,
+      "key" : "veritest_solution",
+      "order" : 7,
       "relationships" : [ {
-        "id" : "17"
+        "id" : "20"
       }, {
-        "id" : "25",
-        "vertices" : [ {
-          "x" : 2304,
-          "y" : 1616
-        } ]
+        "id" : "24"
+      }, {
+        "id" : "33"
+      }, {
+        "id" : "37"
+      }, {
+        "id" : "40"
       }, {
         "id" : "41"
       }, {
-        "id" : "35"
-      }, {
-        "id" : "34"
-      }, {
-        "id" : "42"
-      }, {
         "id" : "43"
       }, {
-        "id" : "20"
-      }, {
-        "id" : "31"
-      }, {
-        "id" : "39"
+        "id" : "44"
       } ]
-    } ],
-    "filteredViews" : [ {
-      "key" : "isabelle_scala_1",
-      "order" : 8,
-      "baseViewKey" : "isabelle_scala",
-      "mode" : "Exclude",
-      "tags" : [ "Overview", "Isabelle Client - Server" ]
-    }, {
-      "key" : "isabelle_client_server_1",
-      "order" : 6,
-      "baseViewKey" : "isabelle_client_server",
-      "mode" : "Exclude",
-      "tags" : [ "Isabelle/Scala", "Overview" ]
-    }, {
-      "key" : "framework_overview_1",
-      "order" : 2,
-      "baseViewKey" : "framework_overview",
-      "mode" : "Exclude",
-      "tags" : [ "InternalIsabelle" ]
-    }, {
-      "key" : "isabelle_overview_1",
-      "order" : 4,
-      "baseViewKey" : "isabelle_overview",
-      "mode" : "Exclude",
-      "tags" : [ "InternalIsabelle" ]
     } ],
     "configuration" : {
       "branding" : { },
+      "lastSavedView" : "veritest_solution_1",
       "styles" : {
         "elements" : [ {
-          "tag" : "Element",
-          "fontSize" : 34
+          "fontSize" : 36,
+          "tag" : "Element"
         }, {
-          "tag" : "Boundary",
-          "fontSize" : 34
+          "fontSize" : 36,
+          "tag" : "Boundary"
         }, {
-          "tag" : "Group",
-          "fontSize" : 34
+          "fontSize" : 36,
+          "tag" : "Group"
         }, {
+          "height" : 100,
           "tag" : "desc",
-          "width" : 400,
-          "height" : 100
+          "width" : 400
         }, {
-          "tag" : "ancillary",
           "background" : "#f2c679",
-          "color" : "#000000"
+          "color" : "#000000",
+          "tag" : "ancillary"
         }, {
-          "tag" : "mobile",
           "background" : "#b3deff",
           "color" : "#000000",
-          "shape" : "MobileDevicePortrait"
+          "shape" : "MobileDevicePortrait",
+          "tag" : "mobile"
         }, {
-          "tag" : "db",
           "background" : "#bfffda",
           "color" : "#000000",
-          "shape" : "Cylinder"
+          "shape" : "Cylinder",
+          "tag" : "db"
         }, {
-          "tag" : "browser",
           "background" : "#b3deff",
           "color" : "#000000",
-          "shape" : "WebBrowser"
+          "shape" : "WebBrowser",
+          "tag" : "browser"
         }, {
-          "tag" : "failover",
-          "opacity" : 45
+          "opacity" : 45,
+          "tag" : "failover"
         } ]
       },
-      "themes" : [ "https://static.structurizr.com/themes/default/theme.json", "https://static.structurizr.com/themes/oracle-cloud-infrastructure-2021.04.30/theme.json" ],
       "terminology" : { },
-      "lastSavedView" : "framework_overview_1"
-    }
+      "themes" : [ "https://static.structurizr.com/themes/default/theme.json", "https://static.structurizr.com/themes/oracle-cloud-infrastructure-2021.04.30/theme.json" ]
+    },
+    "containerViews" : [ {
+      "description" : "A High Level Overview of Isabelle",
+      "dimensions" : {
+        "height" : 1300,
+        "width" : 3100
+      },
+      "elements" : [ {
+        "id" : "3",
+        "x" : 200,
+        "y" : 200
+      }, {
+        "id" : "5",
+        "x" : 2450,
+        "y" : 504
+      }, {
+        "id" : "7",
+        "x" : 950,
+        "y" : 504
+      }, {
+        "id" : "13",
+        "x" : 1700,
+        "y" : 504
+      }, {
+        "id" : "18",
+        "x" : 200,
+        "y" : 800
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "isabelle_overview",
+      "order" : 3,
+      "relationships" : [ {
+        "id" : "11"
+      }, {
+        "id" : "15"
+      }, {
+        "id" : "16"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "30"
+      } ],
+      "softwareSystemId" : "6"
+    }, {
+      "description" : "Utilizing Isabelle Client - Server",
+      "dimensions" : {
+        "height" : 861,
+        "width" : 3100
+      },
+      "elements" : [ {
+        "id" : "2",
+        "x" : 200,
+        "y" : 199
+      }, {
+        "id" : "5",
+        "x" : 2450,
+        "y" : 249
+      }, {
+        "id" : "6",
+        "x" : 1708,
+        "y" : 929
+      }, {
+        "id" : "19",
+        "x" : 1700,
+        "y" : 249
+      }, {
+        "id" : "22",
+        "x" : 950,
+        "y" : 249
+      } ],
+      "externalSoftwareSystemBoundariesVisible" : false,
+      "key" : "isabelle_client_server",
+      "order" : 5,
+      "relationships" : [ {
+        "id" : "17"
+      }, {
+        "id" : "20"
+      }, {
+        "id" : "25"
+      }, {
+        "id" : "28"
+      }, {
+        "id" : "34"
+      } ],
+      "softwareSystemId" : "18"
+    } ],
+    "filteredViews" : [ {
+      "baseViewKey" : "framework_overview",
+      "key" : "framework_overview_1",
+      "mode" : "Exclude",
+      "order" : 2,
+      "tags" : [ "InternalIsabelle" ]
+    }, {
+      "baseViewKey" : "isabelle_overview",
+      "key" : "isabelle_overview_1",
+      "mode" : "Exclude",
+      "order" : 4,
+      "tags" : [ "InternalIsabelle" ]
+    }, {
+      "baseViewKey" : "isabelle_client_server",
+      "key" : "isabelle_client_server_1",
+      "mode" : "Exclude",
+      "order" : 6,
+      "tags" : [ "Overview" ]
+    }, {
+      "baseViewKey" : "veritest_solution",
+      "key" : "veritest_solution_1",
+      "mode" : "Exclude",
+      "order" : 8,
+      "tags" : [ "Overview" ]
+    } ],
+    "systemLandscapeViews" : [ {
+      "description" : "A High Level Overview of the Solution",
+      "dimensions" : {
+        "height" : 1404,
+        "width" : 3100
+      },
+      "elements" : [ {
+        "id" : "1",
+        "x" : 200,
+        "y" : 199
+      }, {
+        "id" : "2",
+        "x" : 200,
+        "y" : 803
+      }, {
+        "id" : "3",
+        "x" : 950,
+        "y" : 249
+      }, {
+        "id" : "5",
+        "x" : 2450,
+        "y" : 503
+      }, {
+        "id" : "6",
+        "x" : 1700,
+        "y" : 503
+      }, {
+        "id" : "18",
+        "x" : 950,
+        "y" : 853
+      } ],
+      "enterpriseBoundaryVisible" : true,
+      "key" : "framework_overview",
+      "order" : 1,
+      "relationships" : [ {
+        "id" : "12"
+      }, {
+        "id" : "17"
+      }, {
+        "id" : "21"
+      }, {
+        "id" : "31"
+      }, {
+        "id" : "35"
+      }, {
+        "id" : "4"
+      } ]
+    } ]
   }
 }
