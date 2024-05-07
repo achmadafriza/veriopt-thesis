@@ -340,7 +340,7 @@
 % See https://bytefreaks.net/tag/ieeeoverridecommandlockouts for details.
 %\IEEEoverridecommandlockouts
 
-\title{\Large \textbf{VeriTest: Automated Testing Framework for Veriopt's DSL}}
+\title{\Large \textbf{VeriTest: Automatic Verification of Compiler Optimizations}}
 
 \begin{large}
 \author{%
@@ -381,12 +381,12 @@
 \section*{\centering \textbf{Abstract}}
 \begin{sublargesize}
   \textit{
-    VeriTest aims to provide feedback to GraalVM developers on their optimizations written in Veriopt's domain specific language (DSL). 
-    Integrating seamlessly into their development workflow, without requiring expertise in formal proofs. By leveraging Isabelle as the proof engine, 
-    we can provide a comprehensive analyisis on the optimization rule, providing fast feedback -- either counterexamples or proofs -- to the developer. 
-    The implementation utilizes Isabelle Client - Server interactions as an abstraction that ensures concurrent and stateless processing.
+    VeriTest aims to provide feedback to GraalVM developers on proposed optimizations encoded in Veriopt's domain specific language (DSL),
+    integrating into their development workflow without requiring expertise in formal proofs. By leveraging Isabelle as the proof engine, 
+    we can provide a comprehensive analysis on the optimization rule, providing fast feedback -- either counterexamples or proofs -- to the developer. 
+    The implementation utilizes the Isabelle Client - Server interface to ensure concurrent and stateless processing.
     During evaluation of existing optimization rules, VeriTest demonstrated its capability in finding several malformed or erroneous optimization 
-    rules, while also utilizing existing lemmas to complement finding proofs.
+    rules, while also utilizing existing lemmas to find proofs.
   }
 \end{sublargesize}
 
@@ -403,20 +403,20 @@
 % and time consuming as the semantics of a compiler is not exactly human-readable \cite{compcertVerification}.
 
 This paper introduces VeriTest: an Automated Testing Framework for GraalVM's expression optimizations. VeriTest builds upon the work done on 
-the formal specification of GraalVM's intermediate representation (IR) \cite{ATVA21_GraalVM_IR_Semantics} and defining optimization rules as a term 
-rewriting rule using a domain specific language (DSL) \cite{Term_Graph_Optimizations}. 
+the formal specification of GraalVM's Intermediate Representation (IR) \cite{ATVA21_GraalVM_IR_Semantics} and defining optimization rules as a term 
+rewriting rule using a Domain Specific Language (DSL) \cite{Term_Graph_Optimizations}. 
 
-The goal of VeriTest is to provide feedback to GraalVM \cite{graal} developers on their optimizations and integrate it into their development workflow. 
-This would make it easy for developers to use the tool \emph{as you go}, without being a \emph{"proof expert"}.
-In order to achieve that, we can leverage the tools built in interactive theorem provers such as Isabelle \cite{isabelleProof}.
+The goal of VeriTest is to provide feedback to GraalVM \cite{graal} developers on their proposed optimizations and integrate it into their 
+development workflow. This would make it easy for developers to use the tool \emph{as you go}, without being a \emph{"proof expert"}.
+To achieve that, we leverage automation tools built in interactive theorem provers such as Isabelle \cite{isabelleProof}.
 This is inspired by the work done on LLVM by Alive \cite{AliveInLean}, where peephole optimizations would be verified to be semantically 
 correct by leveraging SMT solvers \cite[Sec. 3.1.1]{AliveInLean}.
 
 \section{Isabelle as Proof Engine}
 \label{sec:Isabelle}
 
-Isabelle is an interactive theorem prover that utilizes syntax translations of a theory definition into a set of inference rules that could be 
-automatically reasoned within the system \cite{isabelleProof}. The reasoning is done by functions that work on a proof state called Tactics. 
+Isabelle is an interactive theorem prover that utilizes syntax translations of a theory definition into a set of inference rules that can be 
+automatically reasoned within the system \cite{isabelleProof}. The reasoning is done by functions that work on a proof state called tactics. 
 Tactics either output a direct proof towards the goal or break them down into smaller sub-goals in a divide-and-conquer manner. VeriTest focuses 
 on several proof tools inside Isabelle: Sledgehammer \cite[Sec. 3]{isabelleProof}, Quickcheck \cite[Sec. 4]{isabelleProof}, 
 and Nitpick \cite[Sec. 5]{isabelleProof}.
@@ -436,10 +436,13 @@ and Nitpick \cite[Sec. 5]{isabelleProof}.
 \section{Veriopt's DSL}
 \label{sec:dsl}
 
-Veriopt's DSL allows GraalVM developers to express optimizations as a rewriting rule, using a Java syntax similar to GraalVM's IR, inside Isabelle 
-\cite{Term_Graph_Optimizations}. \citet{Term_Graph_Optimizations} describes that there are 2 proof obligations (or subgoals) that must be met for the 
-side-effect-free optimization to be correct: (1) proof that the optimization rule will terminate; (2) proof that each pass of the optimization 
-rule will result in a refinement of the expression.
+Veriopt's DSL enables GraalVM developers to express optimizations as rewriting rules in a Java syntax similar to GraalVM's IR within Isabelle 
+\cite{Term_Graph_Optimizations}. \citet{Term_Graph_Optimizations} describe that there are 2 proof obligations that must be met for the 
+side-effect-free optimization to be correct: 
+\begin{inparaenum}
+  \item proof that the optimization rule will terminate;
+  \item proof that each pass of the optimization rule will result in a refinement of the expression.
+\end{inparaenum}
 
 \section{Methodology}
 \label{sec:Methodology}
@@ -455,32 +458,31 @@ rule will result in a refinement of the expression.
 \end{figure*}
 
 In order to provide feedback for GraalVM developers, VeriTest would need to verify whether the optimization rule:
-
-\begin{enumerate}
-  \item is obviously false -- a counterexample exists for the optimization;
+\begin{inparaenum}
+  \item is obviously false -- a counterexample exists;
   \item is obviously true -- a proof can be found;
-  \item would require manual proving by \emph{"proof experts"}.
-\end{enumerate}
+  \item require manual proving by \emph{"proof experts"}.
+\end{inparaenum}
 
-To leverage Isabelle, VeriTest utilizes Isabelle Client - Server \cite{isabelleSystem} interactions as a method of passing optimization 
-rules to prove inside Isabelle. Isabelle Server acts as the core Isabelle process that allows theorems and all the required facts to 
-be loaded up and processed in parallel (See \cref{sec:limitations}) by Isabelle/ML which is ideal for the nature of VeriTest 
-\cite[Ch. 4.2.6]{isabelleSystem}. Due to the fact that theorems can interfere with one another, VeriTest ensures that each theorem are 
+To leverage Isabelle, VeriTest utilizes Isabelle Client - Server \cite{isabelleSystem} interactions as a method of interfacing with 
+Isabelle tools. Isabelle Server acts as the core Isabelle process that allows theorems and all the required facts to 
+be loaded up and processed in parallel by Isabelle/ML which is ideal for VeriTest \cite[Ch. 4.2.6]{isabelleSystem}. 
+As theorems can interfere with one another, VeriTest ensures that each theorem is 
 mutually exclusive by separating the sessions that they are run on, making them essentially stateless.
 
-\cref{fig:architecture} demonstrates the solution architecture of VeriTest. As there are multiple ways of interacting with Isabelle Server 
-\cite[Ch. 4.2]{isabelleSystem}, VeriTest abstracts that interaction by utilizing a bridge design pattern. The abstraction is implemented by 
+\cref{fig:architecture} demonstrates the architecture of VeriTest. As there are multiple ways of interacting with Isabelle Server 
+\cite[Ch. 4.2]{isabelleSystem}, VeriTest abstracts the interaction by utilizing a bridge design pattern. The abstraction is implemented by 
 Isabelle Process, which is a proxy for an Isabelle Client subprocess. 
 
 Utilizing the proof tools provided by Isabelle yields a comprehensive analysis of the optimization rule, as we're making use of a battle-tested 
-and proven automated theorem prover. Passing optimization rules into Isabelle Client is done in parallel, utilizing asynchronous functions managed 
-by a thread pool inside the system. These asynchronous functions implements a circuit-breaker pattern when either a proof or a counterexample is 
-found in order to provide fast feedback.
+automated theorem prover. Passing optimization rules into Isabelle Client is done in parallel, utilizing asynchronous functions managed 
+by a thread pool inside the system. In order to provide fast feedback, these asynchronous functions implements a circuit-breaker pattern 
+when either a proof or a counterexample is found.
 
 \subsection{Finding Counterexample}
 \label{sec:findcounterexample}
 
-In order to find counterexamples, we utilize Nitpick and Quickcheck from Isabelle. Optimization expression is represented as an Isabelle/HOL 
+In order to find counterexamples, we utilize Nitpick and Quickcheck from Isabelle. Optimization rules are represented as an Isabelle/HOL 
 data type, the expression is fully translated into conjunctions which can be inferred as satisfiable or not \cite[Sec. 2]{Term_Graph_Optimizations}.
 
 % Quickcheck is one of the counterexample generators in Isabelle that discover counterexamples quickly by assigning 
@@ -499,16 +501,18 @@ data type, the expression is fully translated into conjunctions which can be inf
 % them into resolution prover and external SMT solver to try and solve it \cite[Sec. 3]{isabelleProof}. Sledgehammer, 
 % combined with external SMT solvers, can solve 60.1\% of proof goals, with a 44.7\% success rate for non-trivial goals \cite{isabelleProof}.
 
-Sledgehammer is invoked recursively over the course of verifying the optimization rule. As after Sledgehammer is invoked, there may be multiple 
-possible proofs that is available, and it may not completely prove all proof obligations.
+Sledgehammer is invoked recursively in an attempt to verify the optimization rule. As after Sledgehammer is invoked, there may be multiple 
+possible proofs available, and it may not completely prove all proof obligations. Thus, we use the partially proven optimization rule and 
+re-invoke Sledgehammer, until either it succeeds or fails to prove all proof obligations.
 
 \subsection{Limitations}
 \label{sec:limitations}
 
-Over the course of the implementation, we found a key flaw inside Isabelle Server \cite{isabelleSystem}. Unexpectedly, 
+% Over the course of the implementation, we found a key flaw inside Isabelle Server.
+Unexpectedly, we found a key flaw inside Isabelle Server.
 \citet{kobschatzki_unexpected_2024} notes that Isabelle Server triggers a race condition with multiple users and sessions, unless a 
 delay of several seconds is placed in between subsequent commands. Isabelle Server's source code also confirms that each command invocation 
-doesn't seem to support concurrent use.
+doesn't support concurrent use. As such, this introduces a bottleneck for parallel processing of optimization rules.
 
 \section{Evaluation}
 \label{sec:evaluation}
@@ -527,22 +531,30 @@ doesn't seem to support concurrent use.
     No Subgoal & 2 & 37.93 \pm\ 3.38 \\
     \bottomrule
   \end{tabular}
-  \caption{Evaluation of existing Veriopt optimization rules based on runtime (s)}
+  \caption{Evaluation of each existing Veriopt optimization rules based on runtime (in seconds)}
   \label{tab:evaluation}
 \end{figure}
 
-Evaluation is done by exporting the existing Veriopt's expression canonicalization optimization rules and iterating it 5 times as a benchmark on 
+Evaluation is done by exporting the existing Veriopt's expression canonicalization optimization rules and iterating them five times as a benchmark on 
 an AMD Ryzen 9 7900X processor with 64GB of RAM inside Windows 10 WSL environment. \cref{tab:evaluation} describes the result of the evaluation.
 
-Our findings demonstrated consistency over automatic proofing, finding counterexamples, and finding malformed rules. This is due to the rules 
-being processed inside Isabelle/ML, instead of passed on to an external SMT solver. The main bottleneck of the process is due to the limitations of 
-Isabelle Server (See \cref{sec:limitations}) and the stateless manner of which it is processed.
+% Since each subsequent Isabelle command invocation is separated by the session it is run on and the bottleneck that the limitation of 
+% Isabelle Server introduces, there is a baseline runtime for every verification of an optimization rule. 
+Our findings suggests that there is a baseline runtime for every verification of an optimization rule, since each subsequent Isabelle command 
+invocation is stateless. Additionally, the limitation of Isabelle Server introduces a bottleneck to the system.
+This is demonstrated by the consistent runtime of finding automatic proofs, counterexamples, and malformed rules.
 
-Furthermore, we found that VeriTest is capable of utilizing existing lemmas inside Veriopt's current working to find proofs for the optimization rule.
-The discrepancy of the runtime is due to the fact that some optimization rules are inherently more complex than others 
-(\eg \emph{XorIsEqual\_64\_1} and \emph{XorIsEqual\_64\_4}).
+The evaluated runtime suggests a significant variation of runtime for some results.
+This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule. 
+Failure to find a proof suggests that it \emph{may} be able to be proven with adequate expertise in formal proofs.
+As the complexity of optimization rules vary, the depth of the recursive tree depends on the proof obligations that 
+Sledgehammer can prove.
 
-Surprisingly, some of the existing optimization rules are malformed (\eg \emph{AbsIdempotence} and \emph{AbsNegate}). We found that it is malformed 
+Furthermore, we found that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
+optimization rule. This implies that, as the collection of theories grow, the percentage of optimization rules that can be 
+automatically proven is improved. 
+
+Surprisingly, some of the existing, commented out, optimization rules are malformed. After investigation, we found that it is malformed 
 due to type unification errors over the IR terms.
 
 % % regular IEEE prefers the singular form
