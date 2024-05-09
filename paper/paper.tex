@@ -381,7 +381,7 @@
 \section*{\centering \textbf{Abstract}}
 \begin{sublargesize}
   \textit{
-    VeriTest aims to provide feedback to GraalVM developers on proposed optimizations encoded in Veriopt's domain specific language (DSL),
+    VeriTest aims to provide feedback to GraalVM developers on proposed optimizations encoded in Veriopt's Domain Specific Language (DSL),
     integrating into their development workflow without requiring expertise in formal proofs. By leveraging Isabelle as the proof engine, 
     we can provide a comprehensive analysis on the optimization rule, providing fast feedback -- either counterexamples or proofs -- to the developer. 
     The implementation utilizes the Isabelle Client - Server interface to ensure concurrent and stateless processing.
@@ -402,7 +402,8 @@
 % of software: testing and formal verification that the semantics is correct \cite{compcertVerification}. Rigorous testing on a compiler is tedious 
 % and time consuming as the semantics of a compiler is not exactly human-readable \cite{compcertVerification}.
 
-This paper introduces VeriTest: an Automated Testing Framework for GraalVM's expression optimizations. VeriTest builds upon the work done on 
+This paper introduces VeriTest: a software interface for automatic verification of GraalVM's expression optimizations. 
+VeriTest builds upon the work done on 
 the formal specification of GraalVM's Intermediate Representation (IR) \cite{ATVA21_GraalVM_IR_Semantics} and defining optimization rules as a term 
 rewriting rule using a Domain Specific Language (DSL) \cite{Term_Graph_Optimizations}. 
 
@@ -509,7 +510,7 @@ re-invoke Sledgehammer, until either it succeeds or fails to prove all proof obl
 \label{sec:limitations}
 
 % Over the course of the implementation, we found a key flaw inside Isabelle Server.
-Unexpectedly, we found a key flaw inside Isabelle Server.
+Unexpectedly, there is a key flaw inside Isabelle Server.
 \citet{kobschatzki_unexpected_2024} notes that Isabelle Server triggers a race condition with multiple users and sessions, unless a 
 delay of several seconds is placed in between subsequent commands. Isabelle Server's source code also confirms that each command invocation 
 doesn't support concurrent use. As such, this introduces a bottleneck for parallel processing of optimization rules.
@@ -542,20 +543,19 @@ an AMD Ryzen 9 7900X processor with 64GB of RAM inside Windows 10 WSL environmen
 % Isabelle Server introduces, there is a baseline runtime for every verification of an optimization rule. 
 Our findings suggests that there is a baseline runtime for every verification of an optimization rule, since each subsequent Isabelle command 
 invocation is stateless. Additionally, the limitation of Isabelle Server introduces a bottleneck to the system.
-This is demonstrated by the consistent runtime of finding automatic proofs, counterexamples, and malformed rules.
+This is demonstrated by the consistent minimum runtime of finding automatic proofs, counterexamples, and malformed rules.
 
 The evaluated runtime suggests a significant variation of runtime for some results.
 This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule. 
-Failure to find a proof suggests that it \emph{may} be able to be proven with adequate expertise in formal proofs.
 As the complexity of optimization rules vary, the depth of the recursive tree depends on the proof obligations that 
-Sledgehammer can prove.
-
-Furthermore, we found that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
-optimization rule. This implies that, as the collection of theories grow, the percentage of optimization rules that can be 
-automatically proven is improved. 
+Sledgehammer can prove. Failure to find a proof suggests that it \emph{may} be able to be proven with adequate expertise in formal proofs.
 
 Surprisingly, some of the existing, commented out, optimization rules are malformed. After investigation, we found that it is malformed 
 due to type unification errors over the IR terms.
+
+Finally, we found that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
+optimization rule. This implies that, as the collection of theories grow, the percentage of optimization rules that can be 
+automatically proven is improved.
 
 % % regular IEEE prefers the singular form
 % \section*{Acknowledgment}

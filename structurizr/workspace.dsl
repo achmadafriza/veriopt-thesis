@@ -42,7 +42,7 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
 
         framework = softwareSystem "VeriTest" "Automated Testing Framework" "Java" {
             isabelle = container "Isabelle Server" "" "Internal" {
-                -> smt "Automated Proofing" {
+                -> smt "Automated Tools" {
                     tags "InternalIsabelle"
                 }
             }
@@ -57,11 +57,11 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
                 }
 
                 controller = component "Controller" "Handle User Requests" "Spring Boot REST Controller" {
-                    developer -> controller "Sends Optimization Rules to Proof"
+                    developer -> controller "Send Optimization Rules"
                 }
 
                 isabelleService = component "Isabelle Service" "Facade for Isabelle" "Spring Bean" {
-                    controller -> isabelleService "Passes Rules"
+                    controller -> isabelleService "Rules"
                 }
 
                 isabelleClientInterface = component "Isabelle Client Interface" "" "Interface"
