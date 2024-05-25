@@ -1,0 +1,2 @@
+
+VeriTest builds upon the work done by Veriopt on the formal specification of GraalVM's Intermediate Representation (IR) and defining optimization rules as a term rewriting rule using a Domain Specific Language (DSL). 

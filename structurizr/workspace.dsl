@@ -41,13 +41,13 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
         }
 
         framework = softwareSystem "VeriTest" "Automated Testing Framework" "Java" {
-            isabelle = container "Isabelle Server" "" "Internal" {
+            isabelle = container "Isabelle Server" "" "" {
                 -> smt "Automated Tools" {
                     tags "InternalIsabelle"
                 }
             }
 
-            service = container "Service" "" "Java" {
+            service = container "Veritest Service" "" "Java" {
                 isabelleClient = component "Isabelle Client" "" "Subprocess" {
                     -> isabelle "Process Theory"
                 }
@@ -74,6 +74,9 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
                 isabelleProcess = component "Isabelle Process" "Proxy for Isabelle Client Subprocess" "Spring Bean" {
                     -> isabelleBridge "Extends"
                     -> isabelleClient "Sends Commands and Theory"
+                    isabelleService -> isabelleProcess {
+                        tags "Overview"
+                    }
                 }
             }
         }
@@ -104,6 +107,28 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
         }
 
         filtered "veritest_solution" exclude "Overview" "veritest_solution_1"
+        
+        dynamic service {
+            title "Process of Automatically Verifying Optimization Rules"
+            developer -> controller "Send Optimization Rules"
+            controller -> isabelleService "Rules"
+            isabelleService -> isabelleProcess "Try to Verify Rule"
+            isabelleProcess -> isabelleClient "Sends Commands and Theory"
+            isabelleClient -> isabelle "Process Theory"
+            isabelle -> smt "Automated Tools"
+            isabelleClient -> isabelleProcess "Response"
+            {
+                {
+                    isabelleProcess -> isabelleService "Partial Proofs from Sledgehammer"
+                }
+                {
+                    isabelleProcess -> isabelleService "Counterexample"
+                }
+            }
+            isabelleService -> isabelleProcess "Try Sledgehammer on Partial Proof [1..n]"
+            isabelleService -> controller "Aggregated Results"
+            controller -> developer "Results"
+        }
 
         # dynamic framework "graalvm_dev_workflow" {
 		# 	developer ->  frontend "Send an Optimization Rule"
@@ -135,6 +160,10 @@ workspace "Spring Context" "Spring's surrounding architecture & dependencies" {
 				width 400
 				height 100
 			}
+            relationship "Relationship" {
+                width 400
+                fontSize "36"
+            }
 			element ancillary {
 				background #f2c679
 				/* colour is text colour. */
