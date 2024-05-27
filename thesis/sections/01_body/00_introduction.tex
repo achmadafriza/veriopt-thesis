@@ -1,3 +1,71 @@
 \chapter{Introduction \label{sec:introduction}}
-\todo[inline]{Introduction: introduce the problem space and (at a high level) any relevant problem-space background. Summarise the contents of the remaining sections in the document (excluding appendices).}
-\lipsum[6-10]
+
+While compilers are generally believed to be correct, unwanted errors would sometimes happen. This is due to: the common pitfalls of the 
+language it's written in are \emph{just} accepted by the community; edge cases of the language that are not well considered; or simply making a 
+mistake inside the implementation \cite[Sec. 1.2]{CompilerOptimization}. Human mistakes are natural in human-made software. As such, it is 
+critical to \emph{try} to minimize the intrinsic risks of error in compilers.
+
+Minimizing the risks of error is non-trivial. A suite of testing mechanisms is needed to ensure the reliability of software. 
+There are several ways to do this. For software, regression testing in the form of Unit, Integration, and System level tests are the 
+industry standard ways for mitigating risks \cite{testing}. Such testing suites are ideal for software with human-understandable behavior. However, 
+the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers is tedious and 
+time-consuming \cite{compcertVerification}.
+
+Another way to verify the behavior of compilers is to \textbf{formally} specify them \cite{compcertVerification}. 
+\todo[inline]{add in details intro to formal specification}
+
+\section{Objectives \& Scope}
+
+The primary purpose of this project is to provide a framework for answering the 2\textsuperscript{nd} step of the compiler research thread proposed by 
+Lopes and Regehr:
+
+\begin{quote}
+    "Implement solver-based tools for finding incorrect optimizations, not-weakest
+    preconditions, groups of optimizations that either subsume each other or
+    undo each other, etc." \cite[p. 5]{CompilerOptimization}.
+\end{quote}
+
+Hence, this project intoduces VeriTest: a software interface for automatic verification of GraalVM's expression optimizations. VeriTest aims to provide 
+fast analysis over proposed optimization rules, written in Veriopt's GraalVM IR Domain Specific Language (DSL) \cite[Sec. 3]{Term_Graph_Optimizations},
+in terms of incorrect optimizations. GraalVM developers could integrate the analysis into their development workflow. This would make it easy for 
+GraalVM's developers to use the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
+
+\begin{figure}[h]
+    \begin{enumerate}
+        \item GraalVM developers write a proposed optimization proof in Veriopt's DSL.
+        \item The optimization rule would be passed into VeriTest by the developers with the following goals:
+
+              \begin{enumerate}
+                \item Determine if it is verifiable;
+                \item If VeriTest can't determine, optimization rules would be passed to \emph{"proof experts"}.
+              \end{enumerate}
+    \end{enumerate}
+    \caption{Proposed development workflow for GraalVM developers}
+    \label{fig:toolGoals}
+\end{figure}
+
+To achieve this, we intend to leverage automation tools built in interactive theorem provers such as Isabelle \cite{IsabelleHOL}, inspired by the 
+previous works such as CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrate the theoretical aspects of 
+formal verification into the practicality of using it in the industry. This project builds upon the previous works done to introduce formal semantics 
+for GraalVM's \cite{graal} Intermediate Representation (IR) \cite{ATVA21_GraalVM_IR_Semantics, Term_Graph_Optimizations} implemented in 
+Isabelle \cite{IsabelleHOL}.
+
+However, verification that DSL matches the implementation of GraalVM would be out of the scope of this project. It would represent a thorough 
+2nd step of the compiler verification research thread \cite[p. 5]{CompilerOptimization} -- similar to Alive2's \cite{Alive2} solution on 
+LLVM's formal verification. Furthermore, extending Veriopt's DSL and Isabelle's 
+automated tools is out of the scope of this project, considering the time constraints of this project and the significant amount of work needed to 
+undertake the endeavour. All of which could represent a future direction in the research.
+
+In relation to the goals, there would be several non-functional requirements implied:
+
+\begin{enumerate}
+    \item Is it possible to extend the current workings of Veriopt in Isabelle to a tool that could provide analysis for the developers?    
+    \item Would the analysis be useful to GraalVM developers?
+    \item How fast could the analysis be provided to GraalVM developers?
+\end{enumerate}
+
+\todo[inline]{mention that benchmarking isabelle is out of scope of this project, and they can refer to isabelle section}
+
+\section{Thesis Structure}
+
+\todo[inline]{refer to sections}

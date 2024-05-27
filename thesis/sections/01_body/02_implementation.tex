@@ -1,5 +1,389 @@
 \chapter{Implementation \label{sec:implementation}}
-\todo[inline]{Implementation: how was your experiment/project accomplished? 
-Include enough details of your method and tooling that someone can easily replicate your results.
-}
-\lipsum[16-20]
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{structurizr-1-veritest_solution_1.png}
+    \caption{Software Architecture of Veritest}
+    \label{fig:architecture}
+\end{figure}
+
+Figure \ref{fig:architecture} outlines the architecture implemented for VeriTest to implement a solver-based tool for finding incorrect optimizations,
+referred by Lopes and Regehr \cite[p. 5]{CompilerOptimization}. There are several key design decisions needed to achieve the functional and 
+non-functional requirements of this project (See Sec. \ref{sec:PossibleApproaches}), all of which are outlined in the following sections.
+
+\section{Isabelle as Proof Engine}
+\label{sec:ProofEngine}
+
+We leverage Isabelle's automated tools -- Sledgehammer to find proofs; Nitpick and Quickcheck to find counterexamples --
+to carry out the analysis for each of the optimization rules. This is possible due to the Intermediate 
+Representation (IR) of GraalVM represented as an inductive datatype inside Isabelle \cite[Sec. 3]{ATVA21_GraalVM_IR_Semantics}. 
+This encoding allows Isabelle to automatically translate the encoding into datatypes internal to Isabelle \cite{biendarra_ning_2024}.
+The efficacy of this method is outlined in Section \ref{sec:results}.
+
+Furthermore, as the inductive datatype acts as the grammar of Veriopt's DSL, erroneous syntax can be detected automatically by Isabelle.
+This is due to the fact that the inductive datatype expects certain types to be present in order for the optimization to by syntactically correct.
+
+\begin{equation}
+    \text{\textbf{optimization} \emph{WrongMultiplication: \((x\ *\ 1)\ \longmapsto\ x\)}}
+    \label{eq:MalformedRule}
+\end{equation}
+
+In (\ref{eq:MalformedRule}), we see that the optimization is intuitively correct. However, as \((x\ *\ 1)\) is translated into 
+\emph{BinaryExpr BinMul x 1}, Isabelle expects the syntax to be in the form of \emph{BinaryExpr BinMul IRExpr IRExpr} 
+\cite[Definition 1]{Term_Graph_Optimizations}. With type unification, we can infer that \(x\) is of type \emph{IRExpr}. However, \(1\) is 
+internally encoded in Isabelle as an Isabelle word, not an IR expression \cite[Definition 2]{Term_Graph_Optimizations}. We can amend the 
+optimization rule by defining it as (\ref{eq:CorrectRule}). As such, syntax errors can be detected.
+
+\begin{equation}
+    \text{\textbf{optimization} \emph{CorrectMultiplication:} \((x\ *\) (\emph{ConstantExpr} (\emph{IntVal} \(b\ 1\)))) \(\longmapsto\ x\)}
+    \label{eq:CorrectRule}
+\end{equation}
+
+\section{Mutual Exclusion}
+\label{sec:MutualExclusion}
+
+\begin{figure}[h]
+    \begin{alignat}{3}
+        \text{\textbf{optimization} } & \text{\emph{WrongOptimization}} & : \quad & \text{\emph{\(x + y \longmapsto x - y\)}} & \label{eq:WrongRule} \\
+        & \text{\textbf{\emph{sorry}}} & & & \nonumber \\
+        \text{\textbf{optimization} } & \text{\emph{ImpactedOptimization}} & : \quad & \text{\emph{\(x * 1 \longmapsto x\)}} & \label{eq:ImpactedRule} \\
+        & \text{\textbf{\emph{nitpick}}} & & & \nonumber
+    \end{alignat}
+
+    \caption{Example of conflicting optimization rules}
+    \label{fig:conflictingRules}
+\end{figure}
+
+As optimization rules are \emph{proposed} in VeriTest, the proposed optimization rule might be incorrect due to counterexamples. On figure 
+\ref{fig:conflictingRules}, we see that optimization rule (\ref{eq:WrongRule}) is obviously false due to arithmetic rules. But as we can omit 
+proof for such optimization rules, by including the keyword \textbf{sorry}, this optimization rule is regarded as proven by Isabelle. This can 
+impact the verification of optimization rule (\ref{eq:ImpactedRule}), falsifying the optimization rule, by the following reasoning:
+
+\begin{align}
+    z * 1\ &\longmapsto\ z,\ \text{(\ref{eq:ImpactedRule})} \\
+    \nonumber \\
+    Let\ z = (x + y) \\
+    (x + y) * 1\ &\longmapsto\ (x + y) \\
+    (x + y) * 1\ &\longmapsto\ (x + y)\ \longmapsto\ (x - y),\ \text{From (\ref{eq:WrongRule})} \\
+    (x + y) * 1\ &\longmapsto\ (x - y) \\
+    \nonumber \\
+    Let\ x = 1,\ y = 1 \\
+    (1 + 1) * 1\ &\longmapsto\ (1 - 1) \\
+    2 * 1\ &\longmapsto\ 0 \\
+    2\ &\longmapsto\ 0 \\
+    &False
+\end{align}
+
+As such, it is critical for each of the \emph{proposed} optimization rule to be mutually exclusive with one another, only interacting with 
+proven theories inside Veriopt's current theory base. This is aided by Isabelle's session framework \cite[Ch. 2]{isabelleSystem}, where 
+each session only interacts with the imported theorems and lemmas inside of it, equivalent to Isabelle sessions defined for Isabelle/jEdit.
+As such, optimization rules are analyzed by spawning a session for each of the rules and commands, depending on the current state of the 
+analysis. The details of the implementation can be seen in section \ref{sec:interface}.
+
+\section{Interfacing with Isabelle}
+\label{sec:interface}
+
+With regards to the non-functional requirement: 
+
+\begin{figure}[h]
+    \centering
+    "Developers of GraalVM need to be able to integrate this easily into their test suite"
+\end{figure}
+
+While developer experience is important with concerns of developer workflow, the only concern for this project is to demonstrate the full 
+capabilities of the analysis done inside VeriTest.
+The extent of \emph{how} GraalVM would integrate VeriTest into their test suite is out of the scope of this project. As such, it is imperative 
+that VeriTest provides a \emph{generic} interface towards analyzing optimization rules.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        interface IsabelleProcessInterface extends Closeable:
+            (BlockingQueue, LockCondition) open()
+            Response submitTask(TaskType, args)
+    \end{lstlisting}
+
+    \caption{Pseudocode for Isabelle Process Interface}
+    \label{fig:IsabelleProcessInterface}
+\end{figure}
+
+We utilize the Isabelle Client-Server interface to interact with Isabelle. Interacting with Isabelle Server can be done in several ways: 
+through Isabelle Client, and through a TCP socket \cite[Ch. 4]{isabelleSystem}. For the purpose of VeriTest, we utilize Isabelle Client to 
+simplify the implementation. Because of the possible alternatives, VeriTest abstracts the interactions through \mono{IsabelleProcessInterface}, 
+as outlined in figure \ref{fig:IsabelleProcessInterface}. Isabelle Process component outlined in figure \ref{fig:architecture} implements 
+this interface, and acts as a proxy for Isabelle Client.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        interface IsabelleClient extends Closeable:
+            Async<Task> startSession(request);
+            Async<Task> stopSession(request);
+            Async<Task> useTheory(request);
+    \end{lstlisting}
+
+    \caption{Pseudocode for Isabelle Client}
+    \label{fig:IsabelleClientInterface}
+\end{figure}
+
+Furthermore, as any analysis done would only concern \emph{submitting} an optimization rule to analyze, VeriTest generalizes the interaction 
+through \mono{IsabelleClient} interface, as illustrated in figure \ref{fig:IsabelleClientInterface}. This interface generalizes any type of 
+commands that would be invoked in Isabelle Server \cite[Sec. 4.4]{isabelleSystem}. This allows other components to focus on the implementation 
+of the analysis, rather than worrying about how to interface with Isabelle.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        abstract class AbstractIsabelleClient implements IsabelleClient:
+            var Isabelle: IsabelleProcessInterface;
+        
+            Async<Task> startSession(request):
+                var taskId;
+                do taskId := Isabelle.submitTask(START_SESSION, request);
+                then waitForCompletion();
+                then getResult(taskId);
+                then either (result):
+                    case Success response -> return response;
+                    case Error error -> throw error;
+            
+            ...
+    \end{lstlisting}
+
+    \caption{Pseudocode for Abstract Isabelle Client}
+    \label{fig:AbstractIsabelleClient}
+\end{figure}
+
+As any interaction with Isabelle would involve the procedures of \mono{IsabelleClient}, we utilize a bridge pattern to abstract Isabelle's 
+interaction, as seen in Abstract Isabelle Client in figure \ref{fig:architecture}. The Abstract Isabelle Client defines the procedures of 
+how to interact with Isabelle, utilizing Isabelle Process, which can be seen in figure \ref{fig:AbstractIsabelleClient}. 
+\mono{stopSession()} and \mono{useTheory()} procedures use the same algorithm as \mono{startSession()} to define their interactions.
+Note that \mono{do} and \mono{then} keywords represent asynchronous function compositions. \mono{waitForCompletion()} waits for the 
+asynchronous functions to complete. \mono{getResult()} is a procedure that handles demultiplexing tasks that allows for concurrent 
+processes, which is elaborated in section \ref{sec:ParallelExecution}.
+
+Through this approach to interface with Isabelle, we provide modularity and extensibility for VeriTest, which would immensely assist 
+GraalVM developers integration to their test suite and future work to be done.
+
+\section{Parallel Execution}
+\label{sec:ParallelExecution}
+
+To support VeriTest's goal of providing fast analysis towards optimization rules, VeriTest utilizes concurrent processing by using asynchronous 
+functions. The implementation of Isabelle Process and Abstract Isabelle Client utilizes a producer-consumer pattern, ensuring 
+that interactions towards Isabelle Client would not be a bottleneck for other optimization rules.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        class IsabelleProcess implements IsabelleProcessInterface:
+            var processQueue : BlockingQueue;
+
+            (BlockingQueue, LockCondition) open():
+                queue := new BlockingQueue();
+
+                var daemon := Daemon();
+                daemon.processQueue := queue;
+                daemon.notEmpty := new LockCondition();
+                daemon.asyncQueue := new ReentrantLock();
+
+                return (daemon.asyncQueue, daemon.notEmpty);
+            
+            synchronized Response submitTask(TaskType, args):
+                writeToProcess(TaskType, args);
+                
+                return this.syncQueue.waitAndTake()
+            
+            ...
+    \end{lstlisting}
+
+    \caption{Pseudocode for writing to process}
+    \label{fig:IsabelleProcess}
+\end{figure}
+
+As Isabelle Client is a subprocess for VeriTest, we can split the input and output stream to efficiently process command invocations. 
+The input stream would act as the producer towards the BlockingQueue, while the output stream would be continuously consumed by a separate 
+thread -- as illustrated by figure \ref{fig:IsabelleProcess} and \ref{fig:IsabelleDaemon}. This ensures that command invocations would only be 
+IO bound by the input stream.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        class Daemon:
+            var processQueue : BlockingQueue;
+            
+            var notEmpty : LockCondition;
+            var asyncQueue : BlockingQueue;
+            
+            void run():
+                while process isAlive:
+                    var response := readFromProcess();
+
+                    switch (response):
+                        case ImmediateResponse -> this.processQueue.waitAndPut(response);
+                        case AsyncResponse -> {
+                            this.asyncQueue.put(response);
+                            signalAllCondition(this.notEmpty);
+                        }
+    \end{lstlisting}
+
+    \caption{Pseudocode for reading from process}
+    \label{fig:IsabelleDaemon}
+\end{figure}
+
+Isabelle Server have two types of responses that originates from command invocations: immediate responses and asynchronous responses 
+\cite[Sec 4.2.6]{isabelleSystem}. Immediate responses denote the task identifier to differentiate between asynchronous responses, 
+which is used by \mono{IsabelleProcess}. Asynchronous responses denote the actual progress of the command invocation, 
+identified by their task identifier. As we can see on figure \ref{fig:IsabelleDaemon}, the types of responses are differentiated and sent 
+to different queues.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        class AbstractIsabelleClient implements IsabelleClient:
+            var Isabelle: IsabelleProcessInterface;
+            
+            ...
+
+            var asyncQueue, notEmpty := Isabelle.open()
+
+            Async<Task> getResult(taskId):
+                while true:
+                    while asyncQueue is empty:
+                        waitCondition(notEmpty);
+                
+                    if asyncQueue.peek().taskId == taskId:
+                        return asyncQueue.take();
+    \end{lstlisting}
+
+    \caption{Pseudocode for getting asynchronous results}
+    \label{fig:getResult}
+\end{figure}
+
+Asynchronous responses are consumed by the \mono{getResult()} method as illustrated by figure \ref{fig:getResult}. Sufficient locking 
+mechanisms without spinning the locks are done to ensure that concurrent processes accessing the same queue would not lead to starvation.
+As the queue itself is a \mono{BlockingQueue}, and the purpose of the procedure is only to demultiplex the asynchronous responses, merely 
+checking if the task has the correct identifier is enough to ensure mutual exclusion of concurrent processes.
+
+Asynchronous functions are managed by a thread pool, separating IO bound processes into a different executor to ensure freedom from 
+threadpool-induced deadlock. Furthermore, asynchronous functions implement a circuit-breaker pattern when a successful result is available 
+from the function, which can be seen in appendix \ref{app:circuitBreaker}.
+
+\section{Generating the Analysis}
+\label{sec:generateAnalysis}
+
+VeriTest provides RESTful API that encapsulates all the analysis that would be done towards the optimization rule 
+in order to provide the functional requirements of VeriTest, and satisfy the non-functional requirement:
+
+\begin{figure}[h]
+    \centering
+    "Developers of GraalVM can easily use this without understanding Isabelle."
+\end{figure}
+
+The analysis is done by invoking Isabelle's automated tools and pattern matching their response into their classification. After significant 
+evaluation and analysis, we extended their classification into multiple categories:
+
+\begin{figure}[h]
+    \begin{tabular}{|L{0.95\textwidth}|}
+          \hline
+          \begin{enumerate}
+                \item The optimization rule is false;
+                
+                    Quickcheck or Nitpick are able to find a counterexample.
+            
+                \item The optimization rule is automatically proven;
+                
+                    Based on the optimization rule, no proof obligation are necessary to proof that the optimization rule is true.  
+                
+                \item The optimization rule has no subgoals;
+                
+                    The optimization rule should be able to be automatically proven, but Isabelle classified the optimization as an error.
+                    It is worthy to note that optimization rules that have no subgoals are specific to Isabelle2023, and 
+                    should be amended by the next iteration of Isabelle.
+                
+                \item The optimization rule is proven;
+                
+                    Sledgehammer is able to prove the optimization rule.
+                
+                \item The optimization rule is malformed due to syntax errors;
+                
+                    The optimization rule does not follow the syntax of the DSL.
+
+                \item The optimization rule is malformed due to type errors;
+                
+                    This means that the optimization rule provided has incompatible types.
+            
+                \item The optimization rule cannot be classified.
+                      
+                    VeriTest is unable to verify the optimization rule, due to the complexity of said rule.
+          \end{enumerate} \\
+          \hline
+    \end{tabular}
+    \caption{Optimization rule analysis classification}
+    \label{fig:analysisClassification}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.75\textwidth]{structurizr-1-Dynamic-001.png}
+    \caption{Sequence Diagram for VeriTest}
+    \label{fig:sequenceDiagram}
+\end{figure}
+
+The order of which the analysis is carried out can be seen in figure \ref{fig:sequenceDiagram}. It is interesting to note that there are 
+multiple invocations of Sledgehammer in order to find proofs towards an optimization rule. This is due to the fact that Sledgehammer can both 
+return a partial proof towards an optimization rule due to the two proof obligations needed to prove an optimization rule, and return several 
+proof options that can prove an optimization rule. A recursive algorithm is used in order to comprehensively prove an optimization rule, 
+as illustrated by figure \ref{fig:sledgehammerPseudocode}.
+
+\begin{figure}[h]
+    \begin{lstlisting}
+        class IsabelleService:
+            var Client: IsabelleClient;
+            
+            Async<Result> trySledgehammer(Theory):
+                do var generated := generateTheory(SLEDGEHAMMER, Theory);
+                then Client.startSession(request);
+                then Client.useTheory(generated);
+                then recursiveSledgehammer(Theory, TaskResponse);
+            
+            Result recursiveSledgehammer(Theory, TaskResponse):
+                /* Base Case: Errors returned from Isabelle */
+                if TaskResponse contains errors:
+                    return FAILED;
+                
+                /* Base Case: Found Proof */
+                if TaskResponse contains "No Proof State" or "No Subgoal":
+                    return {
+                        FOUND_PROOF,
+                        TaskResponse.proofs
+                    }
+                
+                var possibleProofs := filterProofs(TaskResponse);
+
+                /* Base Case: Proof not found */
+                if possibleProofs is empty:
+                    return FAILED;
+                
+                var futures : List;
+                for proof in possibleProofs:
+                    var childRequest := generateChildRequest();
+                    childRequest.proofs := TaskResponse.proofs + [proof];
+
+                    futures.add(trySledgehammer(childRequest));
+                
+                do allOfReturnOnSuccess(futures);
+                then waitForCompletion();
+
+                var result := filterAnySuccessfulFuture(futures);
+
+                return result;
+    \end{lstlisting}
+
+    \caption{Pseudocode for Sledgehammer recursive invocations}
+    \label{fig:sledgehammerPseudocode}
+\end{figure}
+
+\todo[inline]{do i need to elaborate more? what do i elaborate more?}
+
+\section{Dependencies and Containerization}
+\label{sec:Containerization}
+
+\lipsum[1-3]
+
+\section{Supporting Tools}
+\label{sec:Tools}
+
+\lipsum[1-3]
