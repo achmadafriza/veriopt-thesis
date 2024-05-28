@@ -53,7 +53,7 @@ determine suitable mutations to inject into the program called \emph{mutation op
 as inserting random values into the program would be akin to random testing. Specifically, Offutt et al. \cite[Sec. 6]{offutt_mutation_2006} 
 elaborates how mutation testing can be used to generate valid or invalid input strings that will have erroneous responses.
 
-\begin{figure}[h]
+\begin{figure}[!htb]
     \begin{tabular}{|L{0.95\textwidth}|}
         \hline
         \begin{enumerate}
@@ -257,6 +257,7 @@ the addition that Nitpick can find counterexamples to proof definitions that are
 \cite[Sec. 7]{isabelleQuickcheck}.
 
 \subsection{Limitations}
+\label{sec:IsabelleLimitations}
 
 It is worthy to note that Quickcheck has some limitations over arbitrary type definitions \cite[Sec. 3.1]{isabelleQuickcheck} 
 and conditional conjectures \cite[Sec. 4]{isabelleQuickcheck}. For arbitrary type definitions, Quickcheck is unable to transform the conjectures 
@@ -276,7 +277,7 @@ Veriopt's DSL only concerns the subset of GraalVM's IR, which is the side-effect
 Side-effect-free data-flow nodes are comparatively easier to prove and optimize, as it is considered to be defined -- as opposed to LLVM's undefined 
 and poisoned variables \cite{Alive2}.
 
-\begin{figure}[h]
+\begin{figure}[!htb]
     \textbf{optimization} \emph{InverseLeftSub: \((x\ -\ y)\ +\ y \longmapsto x\)}
     \begin{enumerate}
         \item \(trm(x)\ <\ trm(BinaryExpr\ BinAdd\ (BinaryExpr\ BinSub\ x\ y)\ y)\)

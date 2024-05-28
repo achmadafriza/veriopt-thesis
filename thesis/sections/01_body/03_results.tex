@@ -1,15 +1,113 @@
-\chapter{Results \label{sec:results}}
-\todo[inline]{Results: what results, quantitative and qualitative, did your research produce?}
-\lipsum[21-23]
+\chapter{Results \& Discussion \label{sec:results}}
 
-\begin{table}[H]
+In order to determine the thoroughness of VeriTest's analysis, we evaluated VeriTest based on Veriopt's current, \emph{proven}, collection of 
+optimization rules inside their theory base \cite{Term_Graph_Optimizations}. Furthermore, as GraalVM's compiler source code is currently annotated 
+with optimization rules following Veriopt's DSL \cite[Sec. 5.1]{Term_Graph_Optimizations}, we can evaluate VeriTest by evaluating the source 
+code annotations through VeriTest.
+
+Evaluation is done by exporting the existing Veriopt's expression canonicalization optimization rules and iterating them several times as 
+a benchmark on an AMD Ryzen 9 7900X processor with 64GB of RAM inside a Windows 10 WSL environment.
+
+\section{Evaluation of Veriopt's Current Theory Base}
+
+\todo[inline]{add table from conference paper}
+
+Our findings suggests that there is a baseline runtime for every verification of an optimization rule. This is because, surprisingly, there is a 
+key flaw inside Isabelle Server. Kobschätzki \cite{kobschatzki_unexpected_2024} notes that Isabelle Server triggers a race condition with multiple 
+users and sessions, unless a delay of several seconds is placed in between subsequent commands. Isabelle Server's source code also confirms that 
+each command invocation doesn't support concurrent use. Since every command invocation is preceded -- and followed by -- session invocations, 
+this flaw inside Isabelle Server presents a bottleneck for processing optimization rules.
+
+\todo[inline]{describe the malformed rule and counterexample}
+
+The evaluated runtime suggests a significant variation of runtime for some results.
+This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule, as illustrated by section 
+\ref{sec:generateAnalysis}. As the complexity of optimization rules vary, the depth of the recursive tree depends on the proof obligations that 
+Sledgehammer can prove. Failure to find a proof suggests that it \emph{may} be able to be proven with adequate expertise in formal proofs.
+
+\subsection{Incomplete Proofs}
+
+While we do discover that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
+optimization rule, we discovered that \emph{some} of the lemmas are in fact only partially proven and are still on progress. 
+This introduces a moderate drawback for VeriTest. However, this can be remedied by adjusting VeriTest's current algorithm 
+(See Fig. \ref{fig:sledgehammerPseudocode}) to consider Isabelle's usage of partially proven theories, and remove such proof if it 
+exists (See appendix \ref{app:remediedPseudocode}).
+
+\todo[inline]{add figure for number of optimization rules that still incorporates incomplete lemmas}
+
+\todo[inline]{describe the figure}
+
+\todo[inline]{add figure for results without incorporating incomplete proofs}
+
+\todo[inline]{describe the figure}
+
+\todo[inline]{tell that as the theory base grows, the percentage of proof should also grow}
+
+\section{Evaluation of Malformed Rules}
+
+In order to determine the completeness of VeriTest's analysis in finding incorrect optimization rules, we devised a suite of test cases describing 
+malformed optimization rules. These malformed rules are generated through mutation operators devised by Offutt et al. \cite{offutt_mutation_2006}.
+The mutated optimization rules should represent possible scenarios where a GraalVM developer might make mistakes in the syntax analogous to 
+the Java syntax (i.e., using Logical Or (\mono{||}) instead of Bitwise Or (\mono{|})). The list of mutation operators applied and the mutated 
+optimization rules can be seen in appendix \ref{app:mutatedOptRules}.
+
+\todo[inline]{add figure for results for malformed rules}
+
+\todo[inline]{describe the figure}
+
+While VeriTest is capable of finding syntax errors, our investigation discovered that VeriTest is unable to discover a counterexample for 
+the majority of the mutated optimization rules. While it may seem trivial intuitively, it does not appear to be so for Isabelle. While the 
+reasons for it are inconclusive, and are in fact beyond the scope of this project, several factors that might explain why.
+
+\subsection{Limitations for Finding Counterexamples}
+
+\begin{figure}[!htb]
     \centering
-    \begin{tabular}{ccccc}
-        \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} & \textbf{E} \\ \hline
-        a          & b          & c          & d          & e          \\
-        1          & 2          & 3          & 4          & 5          \\
-        !          & @          & \#         & \$         & \%        
-    \end{tabular}
-    \caption{An Example Table}
-    \label{tab:example}
-\end{table}
+    \(e_1~\sqsupseteq~e_2~=~(\forall~m~p~v.~[m,~p]~\vdash~e_1~\mapsto~v~\longrightarrow~~[m,~p]~\vdash~e_2~\mapsto~v)\)
+
+    \caption{Term refinement proof obligation, Adapted from \cite[Definition 6]{Term_Graph_Optimizations}}
+    \label{fig:RefinementProofObligation}
+\end{figure}
+
+Revisiting Quickcheck's limitations (See Sec. \ref{sec:IsabelleLimitations}), it is possible that Quickcheck's exhaustive test generator 
+is unable to transform complex conjectures into datatypes that it can generate tests for, even when appropriate constructors are defined. 
+For conditional conjectures for each optimization rule, such as figure \ref{fig:RefinementProofObligation}, Quickcheck may exhaust all 
+possible values of IR expressions that define the context of \([m,~p]\) at the expression level, which it fails to do so.
+
+\begin{figure}[!htb]
+    \centering
+    \(val[e_1]~\neq~\)\emph{UndefVal}\(~\land~val[e_2]~\neq~\)\emph{UndefVal}\(~\longrightarrow~val[e_1]~=~val[e_2]\)
+
+    \caption{Conditional evaluation of \(e_1\) and \(e_2\)}
+    \label{fig:ConditionalEvaluation}
+\end{figure}
+
+Instead of exhaustively enumerating all the possible contexts for an expression, it may be possible for Quickcheck to conditionally evaluate 
+the given conjecture as a value, as illustrated in figure \ref{fig:ConditionalEvaluation}. As long as \(e_1\) and \(e_2\) are not undefined, 
+the values of \(e_1\) and \(e_2\) are compared to be equal or not. This semi-automatic method of conditionally evaluating expression semantics 
+would need VeriTest to be able to parse GraalVM's IR DSL and statically analyze and construct appropriate equations in order to verify it, 
+which may represent potential future work to be done.
+
+\todo[inline]{summary of what a quotient type is --> should i put this in the appendix?}
+
+In the case of Nitpick, extensive debugging suggests that there may be an inherent flaw inside either the encoding of GraalVM's expression semantics.
+Inside Veriopt's DSL, the encoding for GraalVM's IR expressions is defined as functions and datatypes that would influence how Isabelle would 
+reason about it. Such definitions would be used to translate optimization rules into conjunctions for SMT solvers to find satisfiability.
+However, we found that among the translated conjunctions, especially for the term refinement proof obligation, 
+Nitpick is unable to support \emph{representative functions} to properly map an Integer quotient type (See appendix \ref{app:quotientType}) 
+into the respective first-order relational logic \cite[Ch. 8]{isabelleNitpick}. This is explicitly mentioned as a known bug inside Nitpick, 
+and should be amended by defining a \emph{term postprocessor} that converts such quotient type into a standard mathematical notation 
+\cite[Sec. 3.7]{isabelleNitpick} or correcting underspecified functions \cite[Ch. 8]{isabelleNitpick}. 
+To quote from Blanchette \cite[Ch. 8]{isabelleNitpick}:
+
+\begin{quote}
+    "Axioms or definitions that restrict the possible values of the undefined
+    constant or other partially specified built-in Isabelle constants (e.g.,
+    \emph{Abs\_} and \emph{Rep\_} constants) are in general ignored. Again, such nonconservative extensions are generally considered bad style."
+\end{quote}
+
+\section{Evaluation of GraalVM's Source Code Annotations}
+
+\todo[inline]{add table of graal annotation evaluation}
+
+\lipsum[1]
