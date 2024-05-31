@@ -7,12 +7,12 @@ critical to \emph{try} to minimize the intrinsic risks of error in compilers.
 
 Minimizing the risks of error is non-trivial. A suite of testing mechanisms is needed to ensure the reliability of software. 
 There are several ways to do this. For software, regression testing in the form of Unit, Integration, and System level tests are the 
-industry standard ways for mitigating risks \cite{testing}. Such testing suites are ideal for software with human-understandable behavior. However, 
-the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers is tedious and 
-time-consuming \cite{compcertVerification}.
+industry standard ways for mitigating risks \cite{testing}. 
 
-Another way to verify the behavior of compilers is to \textbf{formally} specify them \cite{compcertVerification}. 
-\todo[inline]{add in details intro to formal specification}
+Such testing suites are ideal for software with human-understandable behavior. However, 
+the behaviors of compilers itself are not exactly human-readable. As such, manually defining the obscure behaviors of compilers is tedious and 
+time-consuming \cite{compcertVerification}. Another way to verify the behavior of compilers is to \textbf{formally} 
+specify them \cite{compcertVerification}.
 
 \section{Objectives \& Scope}
 
@@ -26,9 +26,10 @@ Lopes and Regehr:
 \end{quote}
 
 Hence, this project intoduces VeriTest: a software interface for automatic verification of GraalVM's expression optimizations. VeriTest aims to provide 
-fast analysis over proposed optimization rules, written in Veriopt's GraalVM IR Domain Specific Language (DSL) \cite[Sec. 3]{Term_Graph_Optimizations},
-in terms of incorrect optimizations. GraalVM developers could integrate the analysis into their development workflow. This would make it easy for 
-GraalVM's developers to use the tool \emph{as you go}, without being a \emph{"proof expert"} on Isabelle.
+fast analysis over proposed optimization rules -- written in Veriopt's GraalVM intermediate representation (IR) domain specific language 
+(DSL) \cite[Sec. 3]{Term_Graph_Optimizations} -- in terms of incorrect optimizations. GraalVM developers could integrate the analysis into 
+their development workflow. This would make it easy for GraalVM's developers to use the tool \emph{as you go}, 
+without being a \emph{"proof expert"} on Isabelle.
 
 \begin{figure}[h]
     \begin{enumerate}
@@ -47,8 +48,7 @@ GraalVM's developers to use the tool \emph{as you go}, without being a \emph{"pr
 To achieve this, we intend to leverage automation tools built in interactive theorem provers such as Isabelle \cite{IsabelleHOL}, inspired by the 
 previous works such as CompCert \cite{compcertVerification} and Alive \cite{AliveInLean,Alive2}; all of which integrate the theoretical aspects of 
 formal verification into the practicality of using it in the industry. This project builds upon the previous works done to introduce formal semantics 
-for GraalVM's \cite{graal} Intermediate Representation (IR) \cite{ATVA21_GraalVM_IR_Semantics, Term_Graph_Optimizations} implemented in 
-Isabelle \cite{IsabelleHOL}.
+for GraalVM's \cite{graal} IR \cite{ATVA21_GraalVM_IR_Semantics, Term_Graph_Optimizations} implemented in Isabelle \cite{IsabelleHOL}.
 
 However, verification that DSL matches the implementation of GraalVM would be out of the scope of this project. It would represent a thorough 
 2nd step of the compiler verification research thread \cite[p. 5]{CompilerOptimization} -- similar to Alive2's \cite{Alive2} solution on 
@@ -56,7 +56,14 @@ LLVM's formal verification. Furthermore, extending Veriopt's DSL and Isabelle's
 automated tools is out of the scope of this project, considering the time constraints of this project and the significant amount of work needed to 
 undertake the endeavour. All of which could represent a future direction in the research.
 
-In relation to the goals, there would be several non-functional requirements implied:
+Additionally, in relation to the evaluation of VeriTest, we would conduct benchmarks upon Veriopt's current theory base and GraalVM's source 
+code annotations, which is elaborated on Section \ref{sec:results}. However, the purpose of this evaluation is not to benchmark Isabelle, 
+rather to provide a starting point to understand the capabilities of VeriTest. There is a community-led benchmark spearheaded by Huch and Bode 
+\cite{huch_isabelle_2022} which evaluates the performance of Isabelle for typical computations.
+
+\section{Thesis Structure}
+
+In relation to the goals, there would be several questions implied:
 
 \begin{enumerate}
     \item Is it possible to extend the current workings of Veriopt in Isabelle to a tool that could provide analysis for the developers?    
@@ -64,8 +71,18 @@ In relation to the goals, there would be several non-functional requirements imp
     \item How fast could the analysis be provided to GraalVM developers?
 \end{enumerate}
 
-\todo[inline]{mention that benchmarking isabelle is out of scope of this project, and they can refer to isabelle section}
+In order to achieve the goals of this project, we conducted a literature review in Chapter \ref{sec:background} that explores 
+why software testing is considered to be inadequate for eliminating errors inside a compiler, and the significancy of 
+formally specifying a compiler -- done by CompCert \cite{compcertVerification}, Alive \cite{AliveInLean, Alive2}, and 
+Veriopt \cite{ATVA21_GraalVM_IR_Semantics, Term_Graph_Optimizations}. Furthermore, the capabilities of Isabelle as an interactive 
+theorem prover that can help provide analysis towards optimization rules are described in this chapter. Chapter \ref{sec:PossibleApproaches} 
+examines the possible approaches to extend the current workings of Veriopt in order to analyze optimization rules.
 
-\section{Thesis Structure}
+Furthermore, Chapter \ref{sec:implementation} describes VeriTest's current implementation, following what we consider to be the 
+best possible approach to analyze optimization rules considering the time constraints of this project. The implementation of VeriTest 
+considers several key requirements: (1) extensibility and modularity of the implementation for future work to be done; (2) comprehensiveness 
+of the analysis; and (3) performance of VeriTest as a system. Chapter \ref{sec:results} evaluates the key requirements of VeriTest, 
+and examines our findings towards leveraging Isabelle as VeriTest's proof engine.
 
-\todo[inline]{refer to sections}
+Finally, Chapter \ref{sec:conclusion} concludes by discussing the projects contribution to the field of compiler research. This chapter also 
+reviews our findings and provides recommendations for future work to be done.

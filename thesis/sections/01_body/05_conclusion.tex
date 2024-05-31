@@ -1,8 +1,45 @@
 \chapter{Conclusion \label{sec:conclusion}}
-\todo[inline]{Conclusion: what conclusions can be drawn from the results of your research?}
 
-\section{Summary \& Conclusions \label{sec:summary}}
-\lipsum[31-33]
+In order to provide a solver-based tools for identifying incorrect optimizations, we introduced VeriTest: a software interface 
+for automatic verification of GraalVM's expression optimizations. The main goal of this project is to integrate VeriTest into 
+the GraalVM development workflow to assist developers in verifying proposed optimization rules without requiring expertise in formal 
+proof systems. Through leveraging Isabelle and their automated tools such as Sledgehammer, Nitpick, and Quickcheck, VeriTest demonstrated 
+its capability to detect malformed and incorrect optimization rules, and provide automatic verification of optimization rules.
+
+Through the design patterns and algorithms that VeriTest has implemented, it has demonstrated its capability to provide fast and comprehensive 
+analysis for verifying optimization rules. Producer-consumer pattern and sufficient mutual exclusion locks implemented inside ensured efficient 
+processing for Isabelle invocations without bottlenecks. Furthermore, VeriTest displayed it's extensibility for future refinement through its use of 
+bridge and facade design patterns -- abstracting Isabelle interactions and minimizing tight-coupling.
+
+While the evaluation of VeriTest on Veriopt's current theory base and GraalVM's source code annotation suggests that VeriTest cannot replace 
+manual verification, it has demonstrated its potential in automatically verifying optimization rules; implying that the percentage of 
+optimization rules that \emph{can} be automatically proven will improve as the collection of theories grow. Limitations were identified, 
+particularly in VeriTest's ability to find counterexamples, due to the inherent limitations of Nitpick and Quickcheck. Despite these challenges, 
+the tool provided valuable insights to previous works done and acts as a starting point for further refinement and expansion.
 
 \section{Possible Future Work \label{sec:future_work}}
-\lipsum[34-36]
+
+Due to the limitations of VeriTest in finding counterexamples, a potential direction for VeriTest's development is to enhance 
+its capabilities and address the limitations found. To implement a more robust method for finding counterexamples, VeriTest can be 
+extended with an interpreter capable of statically analyzing the semantics of Veriopt's domain specific language and transform it into a more 
+robust theory to analyze, similar to Figure \ref{fig:ConditionalEvaluation}. Additionally, Isabelle's Quickcheck and Nitpick can be customized 
+to suit the needs of GraalVM's intermediate representation through extending Isabelle/Scala and Isabelle/ML. This would greatly enhance 
+VeriTest's capabilities, while still utilizing the framework that VeriTest provided.
+
+Furthermore, the theory base for GraalVM's intermediate representation should be extended such that it would represent a 
+comprehensive baseline for verifying expression optimizations. Currently, theorems and lemmas inside Veriopt are created specifically for verifying 
+one optimization rule. A more generalized and comprehensive theory base would immensely improve VeriTest's capabilities.
+
+\todo[inline]{maybe add paragraph for analyzing incomplete proofs}
+
+Another key fact that VeriTest demonstrated is that it is a \emph{generalized} interface for interacting with Isabelle. As such, VeriTest 
+can be extended to automatically verify different compilers, given a \emph{sufficient} formal specification for it's intermediate representation.
+Furthermore, the algorithms used in VeriTest to ensure parallel processing and mutual exclusion can be used by Isabelle to enhance Isabelle Server's 
+capabilities, alleviating Isabelle Server's current limitations.
+
+Furthermore, to support VeriTest's integration towards GraalVM's development workflow, it is necessary for VeriTest to be catered towards 
+\emph{how} the developers would interface with VeriTest. This can be in the form of syntax highlighting inside a code editor, or through an 
+interface -- similar to Alive -- that can display the analysis for optimization rules in a more human-readable form.
+
+Overall, while VeriTest has shown promising results, continued development are necessary to fully realize its potential as a 
+comprehensive tool for automatic verification of compiler optimizations.

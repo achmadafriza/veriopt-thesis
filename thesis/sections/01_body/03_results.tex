@@ -5,8 +5,9 @@ optimization rules inside their theory base \cite{Term_Graph_Optimizations}. Fur
 with optimization rules following Veriopt's DSL \cite[Sec. 5.1]{Term_Graph_Optimizations}, we can evaluate VeriTest by evaluating the source 
 code annotations through VeriTest.
 
-Evaluation is done by exporting the existing Veriopt's expression canonicalization optimization rules and iterating them several times as 
-a benchmark on an AMD Ryzen 9 7900X processor with 64GB of RAM inside a Windows 10 WSL environment.
+Evaluation is done by exporting the existing Veriopt's expression canonicalization optimization rules using VeriTest's extraction tool 
+(See Sec. \ref{sec:Tool}) and iterating them several times as a benchmark on an AMD Ryzen 9 7900X processor with 64GB of RAM inside a 
+Windows 10 WSL environment.
 
 \section{Evaluation of Veriopt's Current Theory Base}
 
@@ -19,6 +20,7 @@ each command invocation doesn't support concurrent use. Since every command invo
 this flaw inside Isabelle Server presents a bottleneck for processing optimization rules.
 
 \todo[inline]{describe the malformed rule and counterexample}
+\todo[inline]{mention that the counterexample is for termination proof obligation, not the term refinement obligation}
 
 The evaluated runtime suggests a significant variation of runtime for some results.
 This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule, as illustrated by section 
@@ -55,9 +57,9 @@ optimization rules can be seen in appendix \ref{app:mutatedOptRules}.
 
 \todo[inline]{describe the figure}
 
-While VeriTest is capable of finding syntax errors, our investigation discovered that VeriTest is unable to discover a counterexample for 
-the majority of the mutated optimization rules. While it may seem trivial intuitively, it does not appear to be so for Isabelle. While the 
-reasons for it are inconclusive, and are in fact beyond the scope of this project, several factors that might explain why.
+While VeriTest is capable of finding syntax and type unification errors, our investigation discovered that VeriTest is unable to 
+discover a counterexample for the mutated optimization rules. While it may seem trivial intuitively, it does not appear to be so for Isabelle. 
+While the reasons for it are inconclusive, and are in fact beyond the scope of this project, several factors that might explain why.
 
 \subsection{Limitations for Finding Counterexamples}
 
@@ -90,9 +92,10 @@ which may represent potential future work to be done.
 
 \todo[inline]{summary of what a quotient type is --> should i put this in the appendix?}
 
-In the case of Nitpick, extensive debugging suggests that there may be an inherent flaw inside either the encoding of GraalVM's expression semantics.
+In the case of Nitpick, extensive debugging suggests that there may be an inherent flaw inside the encoding of GraalVM's expression semantics.
 Inside Veriopt's DSL, the encoding for GraalVM's IR expressions is defined as functions and datatypes that would influence how Isabelle would 
 reason about it. Such definitions would be used to translate optimization rules into conjunctions for SMT solvers to find satisfiability.
+
 However, we found that among the translated conjunctions, especially for the term refinement proof obligation, 
 Nitpick is unable to support \emph{representative functions} to properly map an Integer quotient type (See appendix \ref{app:quotientType}) 
 into the respective first-order relational logic \cite[Ch. 8]{isabelleNitpick}. This is explicitly mentioned as a known bug inside Nitpick, 

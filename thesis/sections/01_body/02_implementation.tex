@@ -166,9 +166,9 @@ Each task would contain at least three fields: (1) their task identifier; (2) th
 is finished or have errors; and (3) a list of messages from Isabelle. Through pattern matching Isabelle's messages, we can classify the result 
 of the analysis, as elaborated on section \ref{sec:generateAnalysis}. We parse 
 Isabelle responses in the form of a string with a customized polymorphic deserializer called \mono{TaskDeserializer}\footnote{\href{https://github.com/achmadafriza/veritest-dev/blob/master/src/main/java/com/veriopt/veritest/isabelle/TaskDeserializer.java}{TaskDeserializer.java}}, 
-which utilizes Jackson's \mono{ObjectMapper} \cite{fasterxml_objectmapper_nodate} -- that transforms a string into a abstract JSON tree -- 
-with added functionality through Java Reflections API. This method of parsing is used extensively in figure \ref{fig:IsabelleDaemon} that 
-elaborates how to interface with Isabelle Client's subprocess.
+which utilizes Jackson's \mono{ObjectMapper}\footnote{\href{jackson-databind 2.7.0 {API}}{https://fasterxml.github.io/jackson-databind/javadoc/2.7/com/fasterxml/jackson/databind/ObjectMapper.html}}
+ -- that transforms a string into a abstract JSON tree -- with added functionality through Java Reflections API. This method of parsing 
+is used extensively in figure \ref{fig:IsabelleDaemon} that elaborates how to interface with Isabelle Client's subprocess.
 
 Through this approach to interface with Isabelle, we provide modularity and extensibility for VeriTest, which would immensely assist 
 GraalVM developers integration to their test suite and future work to be done.
@@ -283,7 +283,7 @@ fast analysis for optimization rules with only Isabelle as a bottleneck (See cha
 \section{Generating the Analysis}
 \label{sec:generateAnalysis}
 
-VeriTest provides RESTful API that encapsulates all the analysis that would be done towards the optimization rule 
+VeriTest provides an API that encapsulates all the analysis that would be done towards the optimization rule 
 in order to provide the functional requirements of VeriTest, and satisfy the non-functional requirement:
 
 \begin{quote}
@@ -477,7 +477,7 @@ optimization rules, type unification errors, and other types of errors.
 \label{sec:Containerization}
 
 VeriTest is available as a containerized application\footnote{\href{https://hub.docker.com/repository/docker/achmadafriza/veritest}{https://hub.docker.com/repository/docker/achmadafriza/veritest}} 
-ready for immediate use through Docker \cite{docker_inc_docker_2022}. All of the required dependencies of VeriTest are built through multiple build 
+ready for immediate use through Docker\footnote{\href{https://www.docker.com/}{https://www.docker.com/}}. All of the required dependencies of VeriTest are built through multiple build 
 stages in order to reduce the time needed to build VeriTest through build caching. A critical component of VeriTest is utilizing Isabelle2023's docker 
 image to avoid rebuilding Isabelle from scratch \cite[Sec. 7.1]{isabelleSystem}.
 

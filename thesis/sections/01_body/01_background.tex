@@ -109,25 +109,22 @@ proving much of the side-effect-free data-flow behavior optimizations that occur
 
 CompCert verifies that Clight, a subset of the C programming language \cite{compcertVerification}, is correct through several steps:
 \begin{enumerate}
-    \item 
-    With deterministic programs, a compiler compiles a source program to the produced program -- in which both of the programs must have 
-    the same behavior.
+    \item With deterministic programs, a compiler compiles a source program to the produced program -- in which both of the programs must have 
+          the same behavior.
     
     This step is done by augmenting the compiler code with a \emph{certificate} -- code that carries proof that the behavior is exactly as intended 
     \cite[Sec. 2.2]{compcertVerification}.
 
-    \item Compiler optimization rules must be accompanied by the formal definition of their Intermediate Representation (IR) semantics 
+    \item Compiler optimization rules must be accompanied by the formal definition of their intermediate representation (IR) semantics 
           \cite{compcertVerification,ATVA21_GraalVM_IR_Semantics}.
     
     \item Lastly, to formally verify each of the optimization rules, a compiler must either:
     \begin{enumerate}
-        \item
-        Prove that the code implementing the optimization is correct \cite[Sec. 2.4]{compcertVerification}.
+        \item Prove that the code implementing the optimization is correct \cite[Sec. 2.4]{compcertVerification}.
         
         Veriopt uses this approach in verifying data-flow optimizations (See Sec. \ref{sec:Veriopt}).
 
-        \item 
-        Prove that the unverified code produces the correct behavior in their translation \cite[Sec. 2.4]{compcertVerification}.
+        \item Prove that the unverified code produces the correct behavior in their translation \cite[Sec. 2.4]{compcertVerification}.
 
         Alive uses this approach in verifying LLVM (See Sec. \ref{sec:Alive}).
     \end{enumerate}
@@ -197,8 +194,6 @@ Finding the right proving methods and arguments to utilize is one of the biggest
 Many tools in Isabelle's arsenal can help the user progress towards their proof \cite{IsabelleHOL}. However, the most notable ones are 
 Sledgehammer, Quickcheck, and Nitpick.
 
-\todo[inline]{mention isabelle benchmark}
-
 \subsection{Sledgehammer}
 \label{sec:Sledgehammer}
 
@@ -246,8 +241,8 @@ proof definitions are defined over unbounded variables, exhaustive testing is th
 \label{sec:Nitpick}
 
 Nitpick is an alternative to find counterexamples for proof definitions. Instead of enumerating the bounds of free variables inside the 
-system of Isabelle, Nitpick passes conjectures -- translation of proof definitions into inference rules -- into SAT solvers 
-\cite[Sec. 5]{isabelleProof}. SAT solvers search for the premises that falsify the given conjecture. If a conjecture 
+system of Isabelle, Nitpick passes conjectures -- translation of proof definitions into inference rules -- into SMT solvers 
+\cite[Sec. 5]{isabelleProof}. SMT solvers search for the premises that falsify the given conjecture. If a conjecture 
 has bounds over finite domains, Nitpick will \emph{eventually} find the counterexample. Conjectures with unbounded variables will be partially 
 evaluated \cite[Sec. 5.2]{isabelleProof}. However, it could not determine whether infinite bounds result in a satisfiable conjecture.
 
@@ -264,9 +259,13 @@ and conditional conjectures \cite[Sec. 4]{isabelleQuickcheck}. For arbitrary typ
 into internal Isabelle datatypes. As such, users need to define a way to \emph{construct} their datatype, which would be used by Quickcheck 
 to build test generators. For conditional conjectures, Quickcheck would evaluate the given conjectures with no regards to their premises 
 \cite[Sec. 4]{isabelleQuickcheck}. As such, users would need to specify their own test generators that would take the premises into account 
-\cite[Sec. 4.1]{isabelleQuickcheck}. Furthermore, this limitations extends to Nitpick. For (Co)inductive datatypes, Nitpick needs the user to 
+\cite[Sec. 4.1]{isabelleQuickcheck}. 
+
+Furthermore, this limitations extends to Nitpick. For (Co)inductive datatypes, Nitpick needs the user to 
 properly define their encoding of (Co)inductive datatypes, and manually provide selectors/discriminators if Nitpick cannot automatically infer 
-one \cite[Sec. 5.4]{isabelleProof}.
+one \cite[Sec. 5.4]{isabelleProof}. Moreover, Nitpick has explicitly stated several known bugs and limitations related to the completeness 
+of a datatype's encoding \cite[Ch. 8]{isabelleNitpick}. If an encoding (i.e., Veriopt's DSL) is underspecified, it might lead to spurious errors 
+and errors related to unsupported semantics.
 
 \section{Veriopt}
 \label{sec:Veriopt}
