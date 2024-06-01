@@ -1,5 +1,15 @@
 \chapter*{Abstract \label{sec:abstract}}
 \addcontentsline{toc}{chapter}{Abstract}
-\todo[inline]{Abstract: should outline the main approach and findings of the thesis.}
 
-\lipsum*[5-7] \cite{feynman}
+Ensuring compiler correctness is critical to mitigating the risks of errors, especially during the optimization phases of a compiler. 
+Despite existing approaches to identifying incorrect optimizations in GraalVM's expression optimizations, none incorporate a solver-based tool 
+that provides GraalVM developers with a sufficiently comprehensive analysis of the optimization rules without requiring expertise in formal proofs. 
+Thus, we introduce VeriTest, a tool designed to automatically verify the existence of a simple proof of optimization correctness or identify 
+counterexamples for incorrect optimizations. VeriTest leverages Isabelle's automated tools and Veriopt's representation of GraalVM's intermediate 
+representation (IR) as a domain-specific language (DSL) within Isabelle. This combination enables a comprehensive analysis of optimization rules. 
+The implementation abstracts Isabelle Client - Server interactions to ensure efficient and concurrent processing of optimization rules, while also 
+assuring extensibility for future refinements. Our evaluation demonstrates the capabilities of VeriTest in automatically verifying optimization 
+rules, though significant limitations were found in identifying counterexamples due to the inherent limitations of Isabelle and Veriopt's DSL. However, 
+this also implies that the analysis is expected to improve as the theoretical foundations for GraalVM's IR is improved.
+Despite these challenges, VeriTest has shown significant potential as an automatic verification tool for GraalVM's expression optimizations, 
+providing a solid foundation for future enhancements.

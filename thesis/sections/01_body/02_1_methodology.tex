@@ -2,10 +2,10 @@
 
 Veritest represents another tool that the developers of GraalVM could use to provide a \emph{certificate} for their implementation of optimization rules. 
 To assist in verifying the optimization rule, the tool would need to be able to classify each of the optimization rules 
-(See Fig. \ref{fig:classification}). Furthermore, there are several key non-functional requirements for the system that need to be satisfied 
-(See Fig. \ref{fig:requirements}).
+(See Figure \ref{fig:classification}). Furthermore, there are several key non-functional requirements for the system that need to be satisfied 
+(See Figure \ref{fig:requirements}).
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \begin{tabular}{|L{0.95\textwidth}|}
             \hline
             \begin{enumerate}
@@ -30,7 +30,7 @@ To assist in verifying the optimization rule, the tool would need to be able to 
       \label{fig:classification}
 \end{figure}
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \begin{tabular}{|L{0.95\textwidth}|}
             \hline
             \begin{enumerate}
@@ -40,7 +40,7 @@ To assist in verifying the optimization rule, the tool would need to be able to 
             \end{enumerate} \\
             \hline
       \end{tabular}
-      \caption{Non-functional requirements of the Framework}
+      \caption{Non-functional requirements of VeriTest}
       \label{fig:requirements}
 \end{figure}
 
@@ -54,36 +54,34 @@ to the project:
     \item Create an Interpreter for GraalVM's optimization DSL (See Sec. \ref{sec:DSLInterpreter}).
 \end{itemize}
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \centering
       \includegraphics[width=1\textwidth]{structurizr-1-framework_overview_1.png}
       \caption{Proposed Solution}
       \label{fig:SystemLandscape}
 \end{figure}
 
-\todo[inline]{change veritest label from figure}
-
-Fig. \ref{fig:SystemLandscape} depicts the overview of the proposed solution's system landscape. In theory, it would utilize Isabelle in a similar 
+Figure \ref{fig:SystemLandscape} depicts the overview of the proposed solution's system landscape. In theory, it would utilize Isabelle in a similar 
 manner as Isabelle/jEdit \cite{isabelleSystem}. Therefore, it should be able to use the same Isabelle functionalities as Isabelle/jEdit does.
 
 \section{Isabelle System Overview}
 \label{sec:IsabelleSystemOverview}
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \centering
       \includegraphics[width=1\textwidth]{structurizr-1-isabelle_overview_1.png}
       \caption{Isabelle System Overview}
       \label{fig:IsabelleSystem}
 \end{figure}
 
-Isabelle is made up of two significant components: Isabelle/ML and Isabelle/Scala \cite[Ch. 5]{isabelleSystem} (See Fig. \ref{fig:IsabelleSystem}). 
+Isabelle is made up of two significant components: Isabelle/ML and Isabelle/Scala \cite[Ch. 5]{isabelleSystem} (See Figure \ref{fig:IsabelleSystem}). 
 Isabelle/ML acts as the core functionality of Isabelle, harboring all the tools needed for proving theorems. Isabelle/Scala acts as the system 
 infrastructure for Isabelle/ML -- hiding all implementation details of Isabelle/ML.
 
 \section{Utilizing Isabelle Server}
 \label{sec:IsabelleServer}
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \centering
       \includegraphics[width=1\textwidth]{structurizr-1-isabelle_client_server_1.png}
       \caption{Utilizing Isabelle Client - Server interaction}
@@ -91,12 +89,12 @@ infrastructure for Isabelle/ML -- hiding all implementation details of Isabelle/
 \end{figure}
 
 Isabelle Server acts as the core Isabelle process that allows theorems and all the required facts to be loaded up and processed by Isabelle/ML
-\cite[Ch. 4]{isabelleSystem}. Interactions to Isabelle/Server would require a duplex socket connection over TCP \cite[Sec. 4.2]{isabelleSystem}. 
-To simplify the communication between the framework and Isabelle/Server, we utilize Isabelle Client \cite[Sec. 4.1.2]{isabelleSystem} -- a proxy 
-for Isabelle/Server that handles all the communication protocols of Isabelle/Server (See Fig. \ref{fig:IsabelleServer}).
+\cite[Ch. 4]{isabelleSystem}. Interactions to Isabelle Server require a duplex socket connection over TCP \cite[Sec. 4.2]{isabelleSystem}. 
+To simplify the communication between the framework and Isabelle Server, we utilize Isabelle Client \cite[Sec. 4.1.2]{isabelleSystem} -- a proxy 
+for Isabelle/Server that handles all the communication protocols of Isabelle Server (See Figure \ref{fig:IsabelleServer}).
 
 Isabelle Server can load theorems and process requests in parallel \cite[Sec. 4.2.6]{isabelleSystem}. This implies that it would require a 
-\emph{facade} that implements a demultiplexer for asynchronous messages on Isabelle Client (See Fig. \ref{fig:IsabelleServer}). As such, this 
+\emph{facade} that implements a demultiplexer for asynchronous messages on Isabelle Client (See Figure \ref{fig:IsabelleServer}). As such, this 
 solution -- \emph{theoretically} -- it would allow the framework to offload the computing resources of loading 
 and processing optimization proofs at external sites (See Ch. \ref{sec:results}). VeriTest currently implements this approach, which is 
 elaborated in detail in Ch. \ref{sec:implementation}.
@@ -104,7 +102,7 @@ elaborated in detail in Ch. \ref{sec:implementation}.
 \section{Extending Isabelle/Scala}
 \label{sec:IsabelleScala}
 
-\begin{figure}[!htb]
+\begin{figure}[h]
       \centering
       \includegraphics[width=1\textwidth]{structurizr-1-isabelle_scala_1.png}
       \caption{Extending Isabelle/Scala}
@@ -112,9 +110,9 @@ elaborated in detail in Ch. \ref{sec:implementation}.
 \end{figure}
 
 Isabelle can be extended by accessing Isabelle/Scala functions \cite[Ch. 5]{isabelleSystem}. Extending Isabelle/Scala would require the framework 
-to utilize Isablle's Scala compiler \cite[Sec. 5.1.4]{isabelleSystem}. Utilizing Isabelle/Scala would also mean that VeriTest would be capable of 
-utilizing Isabelle/ML as well. Subsequently, this also implies that it is possible to extend and fine-tune existing automated tools to fit the 
-requirements of this project. Fig. \ref{fig:IsabelleScala} depicts the proposed solution for this option.
+to utilize Isabelle's Scala compiler \cite[Sec. 5.1.4]{isabelleSystem}. Utilizing Isabelle/Scala would also enable VeriTest to leverage Isabelle/ML. 
+Subsequently, this also implies that it is possible to extend and fine-tune existing automated tools to fit the 
+requirements of this project. Figure \ref{fig:IsabelleScala} depicts the proposed solution for this option.
 
 However, the sheer complexity of Isabelle implies that extending Isabelle/Scala would require much of the 
 project's timeline to understand Isabelle/Scala, which the time constraints of this thesis project does not allow. 

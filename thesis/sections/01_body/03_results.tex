@@ -11,57 +11,176 @@ Windows 10 WSL environment.
 
 \section{Evaluation of Veriopt's Current Theory Base}
 
-\todo[inline]{add table from conference paper}
+\begin{table}[!htb]
+    \centering
+    \begin{tabular}{llll}
+      \toprule
+      Result & \#Rules & Mean \pm\ \textit{SD} \\
+      \midrule
+      Failed & 59 & 87.33 \pm\ 49.80 \\
+      Found Auto Proof & 7 & 37.73 \pm\ 3.92 \\
+      Found Proof & 32 & 82.91 \pm\ 29.43 \\
+      Found Counterexample & 1 & 40.79 \pm\ 4.02 \\
+      Malformed & 13 & 37.96 \pm\ 4.02 \\
+      No Subgoal & 2 & 37.93 \pm\ 3.38 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Evaluation of each existing Veriopt optimization rules based on runtime (in seconds)}
+    \label{tab:evaluation}
+\end{table}
 
-Our findings suggests that there is a baseline runtime for every verification of an optimization rule. This is because, surprisingly, there is a 
+Our findings suggest that there is a baseline runtime for every verification of an optimization rule. This is because, surprisingly, there is a 
 key flaw inside Isabelle Server. Kobschätzki \cite{kobschatzki_unexpected_2024} notes that Isabelle Server triggers a race condition with multiple 
 users and sessions, unless a delay of several seconds is placed in between subsequent commands. Isabelle Server's source code also confirms that 
 each command invocation doesn't support concurrent use. Since every command invocation is preceded -- and followed by -- session invocations, 
-this flaw inside Isabelle Server presents a bottleneck for processing optimization rules.
+this flaw inside Isabelle Server presents a bottleneck for processing optimization rules. On the condition that such flaw does not exist, 
+the baseline runtime for verifying optimization rules could be reduced by approximately 24-36 seconds or possibly more -- depending 
+on the depth of the recursion tree.
 
-\todo[inline]{describe the malformed rule and counterexample}
-\todo[inline]{mention that the counterexample is for termination proof obligation, not the term refinement obligation}
+Surprisingly, some of the existing optimization rules are malformed. While it is a commented out rule -- and it is malformed due to a minor 
+syntax error (i.e., \mono{\(\backslash\)mapsto} instead of \mono{\(\backslash\)longmapsto}) -- it is interesting to see that it has type unification errors over the IR 
+expression. This modification is included inside our mutation tests, which is described in Section \ref{sec:evaluateMalformed}.
+
+\begin{figure}[!htb]
+    \textbf{optimization} \emph{SubNegativeConstant: \(x\ -\ (const\ (val[-y]))\ \longmapsto\ x\ +\ (const\ y)\)}
+    \begin{enumerate}
+        \item \(False\)
+        \item \(BinaryExpr\ BinSub\ x\ (ConstantExpr\ (intval\_negate\ y))\ \sqsupseteq\ BinaryExpr\ BinAdd\ x\ (ConstantExpr\ y)\)
+    \end{enumerate}
+
+    \caption{Optimization rule that VeriTest found a counterexample}
+    \label{fig:exampleCounterexample}
+\end{figure}
+
+A counterexample is found for one of the existing optimization rule, as illustrated in Figure \ref{fig:exampleCounterexample}. 
+While it is also on a commented out rule, Isabelle is able to reason that the termination proof obligation would be simplified to 
+\emph{False}. This is due to the fact that an expression termination is represented by a measure function, \emph{trm} of type 
+\emph{IRExpr} \Rightarrow\ \emph{nat} \cite[Sec. 3.3]{Term_Graph_Optimizations}. \(val[e]\) effectively lowers an IR expression into an 
+equivalent value. Isabelle can immediately reason that the size of an equivalent value of an expression \(-y\) is not equal to the expression \(y\). 
+This implies that the optimization rule will not terminate on any context of an optimization phase.
 
 The evaluated runtime suggests a significant variation of runtime for some results.
-This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule, as illustrated by section 
-\ref{sec:generateAnalysis}. As the complexity of optimization rules vary, the depth of the recursive tree depends on the proof obligations that 
+This is due to VeriTest attempting to exhaust every possible proof and counterexample for the optimization rule, as illustrated by Section 
+\ref{sec:generateAnalysis}. As the complexity of optimization rules varies, the depth of the recursive tree depends on the proof obligations that 
 Sledgehammer can prove. Failure to find a proof suggests that it \emph{may} be able to be proven with adequate expertise in formal proofs.
 
+Finally, we found that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
+optimization rule. While we need to consider if the usage of such lemmas are proper -- as it may use incomplete lemmas 
+(See Section \ref{sec:incompleteProof}) -- this also implies that, as the collection of theories grows, the percentage of optimization 
+rules that can be automatically proven is expected to improve.
+
 \subsection{Incomplete Proofs}
+\label{sec:incompleteProof}
 
-While we do discover that VeriTest is capable of utilizing existing lemmas inside Veriopt's current theory base to find proofs for the 
-optimization rule, we discovered that \emph{some} of the lemmas are in fact only partially proven and are still on progress. 
-This introduces a moderate drawback for VeriTest. However, this can be remedied by adjusting VeriTest's current algorithm 
-(See Fig. \ref{fig:sledgehammerPseudocode}) to consider Isabelle's usage of partially proven theories, and remove such proof if it 
-exists (See appendix \ref{app:remediedPseudocode}).
+We have discovered that \emph{some} of the lemmas are in fact only partially proven and are still on progress, due to the fact that 
+Veriopt \cite{Term_Graph_Optimizations} are still in development of proving GraalVM's optimizations.
+This introduces a moderate drawback for the goals of VeriTest, as incorporating incomplete lemmas would effectively lead to an incorrect 
+optimization rule.
 
-\todo[inline]{add figure for number of optimization rules that still incorporates incomplete lemmas}
+Using incomplete proofs to prove an optimization rule can be detected by utilizing oracles through \emph{thm\_oracles} 
+\cite[Sec. 5.14]{isabelleIsar}. Oracles works by leveraging external reasoners to produce arbitrary Isabelle theorems treated as an axiom.
+This is particularly useful as incomplete proofs would then invoke such oracles and mark the arbitrary Isabelle theorem used to skip proof 
+obligations.
 
-\todo[inline]{describe the figure}
+\begin{figure}[!htb]
+    \centering
+    \begin{alignat}{3}
+        \text{\textbf{optimization} } & \text{\emph{AddNeutral}} & : \quad & (e~+~\text{\emph{const}}~(\text{\emph{IntVal}}~32~0))~\longmapsto~e & \nonumber \\
+        & & & \text{\emph{using AddNeutral\_Exp by presburger}} & \nonumber \\
+        \text{\textbf{thm\_oracles} } & \text{\emph{AddNeutral}} & & & \nonumber
+    \end{alignat}
 
-\todo[inline]{add figure for results without incorporating incomplete proofs}
+    \caption{Example of an Isabelle Oracle}
+    \label{fig:isabelleOracle}
+\end{figure}
 
-\todo[inline]{describe the figure}
+However, we found that the behaviors of the oracle invoked directly inside Isabelle and inside Isabelle Server has discrepancies between them.
+Verifying Figure \ref{fig:isabelleOracle} inside Isabelle would not invoke any external oracle, as it already proved all required proof obligations.
+Even so, when invoked inside Isabelle Server, the oracle would produce an arbitrary Isabelle theorem and skip the necessary proof obligation.
 
-\todo[inline]{tell that as the theory base grows, the percentage of proof should also grow}
+While the reasons for this is inconclusive, this is possibly a bug inside Isabelle, tracing the exact reasons inside Isabelle would prove to be 
+a challenge. As such, we were unable to determine which of the existing theorems verified by VeriTest are incorporating incorrect lemmas.
+
+A possible remedy to the limitations of Isabelle Server would be to have a list of such unproven lemmas inside VeriTest so that 
+any proofs found from VeriTest can be matched and excluded. However, building such list only serves as a band-aid for the problem, and should 
+not be treated as the answer. Enhancing VeriTest to consider usage of incorrect lemmas would represent a future refinement to the tool.
 
 \section{Evaluation of Malformed Rules}
+\label{sec:evaluateMalformed}
+
+\begin{table}[!htb]
+    \centering
+    \begin{tabular}{llll}
+      \toprule
+      Result & \#Rules & Mean \pm\ \textit{SD} \\
+      \midrule
+      Failed & 25 & 80.95 \pm\ 18.53 \\
+      Found Proof & 3 & 78.17 \pm\ 16.20 \\
+      Found Counterexample & 2 & 56.22 \pm\ 25.16 \\
+      Malformed & 1 & 35.98 \pm\ 0 \\
+      Type Errors & 14 & 33.47 \pm\ 4.82 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Evaluation of each mutated optimization rules based on runtime (in seconds)}
+    \label{tab:evaluationMalformed}
+\end{table}
 
 In order to determine the completeness of VeriTest's analysis in finding incorrect optimization rules, we devised a suite of test cases describing 
 malformed optimization rules. These malformed rules are generated through mutation operators devised by Offutt et al. \cite{offutt_mutation_2006}.
 The mutated optimization rules should represent possible scenarios where a GraalVM developer might make mistakes in the syntax analogous to 
-the Java syntax (i.e., using Logical Or (\mono{||}) instead of Bitwise Or (\mono{|})). The list of mutation operators applied and the mutated 
-optimization rules can be seen in appendix \ref{app:mutatedOptRules}.
+the Java syntax (i.e., using a short-circuiting logical or (\mono{||}) instead of bitwise or (\mono{|})). The list of mutation operators 
+applied and the mutated optimization rules can be seen in Appendix \ref{app:mutatedOptRules}. The results for the evaluation can be seen in 
+Table \ref{tab:evaluationMalformed}.
 
-\todo[inline]{add figure for results for malformed rules}
+\begin{align}
+    &\text{\textbf{optimization} \emph{condition\_bounds\_x\_1: \(((u~>~v)~?~x~:~y)~\longmapsto~x\)}} \label{eq:conditionBoundsX}
+\end{align}
 
-\todo[inline]{describe the figure}
+Peculiarly, only one mutated optimization rule is regarded as a malformed optimization rule, while others are blended into the classification 
+of a complex rule -- due to the limitations of Nitpick and Quickcheck -- or rules that have type unification errors within them. An example of 
+them are type errors caused by utilizing \(>\) and \(\ge\), as illustrated by (\ref{eq:conditionBoundsX}). Both of the operators do not exist 
+inside GraalVM's IR, but do exist in Isabelle as an operator that returns a \emph{bool}, which cannot be transformed into an \emph{IRExpr}.
 
-While VeriTest is capable of finding syntax and type unification errors, our investigation discovered that VeriTest is unable to 
-discover a counterexample for the mutated optimization rules. While it may seem trivial intuitively, it does not appear to be so for Isabelle. 
-While the reasons for it are inconclusive, and are in fact beyond the scope of this project, several factors that might explain why.
+\begin{align}
+    &\text{\textbf{optimization} \emph{EliminateRedundantFalse\_1: \(x~|~true~\longmapsto~x\)}} \label{eq:EliminateRedundantFalse} \\
+    &\text{\textbf{optimization} \emph{EliminateRedundantFalse\_2: \(x~||~true~\longmapsto~x\)}} \label{eq:EliminateRedundantFalse2}
+\end{align}
+
+Furthermore, there are some ambiguity to the grammar of Veriopt's DSL, particularly with \emph{BinShortCircuitOr} (\mono{||}), 
+\emph{BinOr} (\mono{|}) -- as exemplified by (\ref{eq:EliminateRedundantFalse}). (\ref{eq:EliminateRedundantFalse2}) should be regarded as 
+a \emph{syntactically} correct optimization rule, but type errors exist due to Isabelle regarding \mono{||} as two \emph{BinOr} nodes.
+
+\begin{align}
+    \text{\textbf{optimization} \emph{flipX: }} &((x~eq~(const~(IntVal~32~1)))~? \label{eq:flipX} \\
+    &(const~(IntVal~32~1))~:~(const~(IntVal~32~0))) \nonumber \\
+    &~~~~\longmapsto~x~\oplus~(const~(IntVal~32~1)) \nonumber \\
+                            &when~(x~=~const~(IntVal~32~0)~| \nonumber \\
+                            &~~~~~~~~(x~=~const~(IntVal~32~1))) \nonumber
+\end{align}
+
+This ambiguity is further exacerbated by the use of \emph{const} keyword and \emph{ConstantExpr} node, as seen in (\ref{eq:flipX}). 
+A \emph{const} keyword is just a syntactic sugar for a \emph{ConstantExpr}. However, it cannot be used interchangeably inside 
+a precondition of an optimization rule. A translation function \(exp[]\) needs to be used to mark the expression as an \emph{IRExpr}.
+Furthermore, it is not clear when the translation function needs to be used, as opposed to just adding parenthesis.
+
+\begin{align}
+    &\text{\textbf{optimization} \emph{MulNeutral: }} x~*~ConstExpr~(IntVal~b~1)~\longmapsto~x \label{eq:MulNeutral}
+\end{align}
+
+The ambiguity extends to the definitions of an \emph{IRExpr}. As \emph{ConstExpr} is not included in the definition of \emph{IRExpr}, 
+Isabelle regarded \emph{ConstExpr} as a function of type \(Value~\Rightarrow~IRExpr\) as seen in (\ref{eq:MulNeutral}).
+While this is syntactically correct, it would mean that the resulting IR expression would not conform to the semantics of GraalVM's IR.
+
+These findings indicate that the syntax of Veriopt's DSL may be ambiguous and rather unclear. This represents an opportunity for future research to 
+formalize the grammar of the DSL, possibly adding a parser for the DSL, to reduce the ambiguity so that it is easier for 
+GraalVM's developers to adopt and integrate it into their development workflow.
 
 \subsection{Limitations for Finding Counterexamples}
+
+Although VeriTest is capable of finding syntax and type unification errors, our investigation discovered that VeriTest is unable to 
+discover counterexamples for \emph{specifically} the term refinement proof obligation of the mutated optimization rules. 
+Even though it may seem trivial intuitively, it does not appear to be so for Isabelle. While the reasons for it are inconclusive, 
+and are in fact beyond the scope of this project, we discuss several factors that might explain \emph{why} this happens.
 
 \begin{figure}[!htb]
     \centering
@@ -71,9 +190,13 @@ While the reasons for it are inconclusive, and are in fact beyond the scope of t
     \label{fig:RefinementProofObligation}
 \end{figure}
 
+For termination proof obligation, it is trivial for Isabelle to reason with it due to working over natural numbers. However, 
+for an optimization rule's term refinement proof obligation, illustrated by Figure \ref{fig:RefinementProofObligation}, it is 
+significantly more complex. Isabelle needs to be able to transform the proof obligation into conjectures that it can reason with.
+
 Revisiting Quickcheck's limitations (See Sec. \ref{sec:IsabelleLimitations}), it is possible that Quickcheck's exhaustive test generator 
 is unable to transform complex conjectures into datatypes that it can generate tests for, even when appropriate constructors are defined. 
-For conditional conjectures for each optimization rule, such as figure \ref{fig:RefinementProofObligation}, Quickcheck may exhaust all 
+For conditional conjectures for each optimization rule, such as Figure \ref{fig:RefinementProofObligation}, Quickcheck exhausts all 
 possible values of IR expressions that define the context of \([m,~p]\) at the expression level, which it fails to do so.
 
 \begin{figure}[!htb]
@@ -85,19 +208,17 @@ possible values of IR expressions that define the context of \([m,~p]\) at the e
 \end{figure}
 
 Instead of exhaustively enumerating all the possible contexts for an expression, it may be possible for Quickcheck to conditionally evaluate 
-the given conjecture as a value, as illustrated in figure \ref{fig:ConditionalEvaluation}. As long as \(e_1\) and \(e_2\) are not undefined, 
-the values of \(e_1\) and \(e_2\) are compared to be equal or not. This semi-automatic method of conditionally evaluating expression semantics 
-would need VeriTest to be able to parse GraalVM's IR DSL and statically analyze and construct appropriate equations in order to verify it, 
-which may represent potential future work to be done.
-
-\todo[inline]{summary of what a quotient type is --> should i put this in the appendix?}
+the given conjecture as a value, as illustrated in Figure \ref{fig:ConditionalEvaluation}. As long as \(e_1\) and \(e_2\) are not undefined, 
+the values of \(e_1\) and \(e_2\) are compared to determine equality. This semi-automatic method of conditionally evaluating expression 
+semantics would need VeriTest to parse GraalVM's IR DSL, statically analyze and construct appropriate and equivalent 
+theorems to verify it, which may represent potential future work.
 
 In the case of Nitpick, extensive debugging suggests that there may be an inherent flaw inside the encoding of GraalVM's expression semantics.
-Inside Veriopt's DSL, the encoding for GraalVM's IR expressions is defined as functions and datatypes that would influence how Isabelle would 
-reason about it. Such definitions would be used to translate optimization rules into conjunctions for SMT solvers to find satisfiability.
+Inside Veriopt's DSL, the encoding for GraalVM's IR expressions is defined as functions and datatypes that influence how Isabelle 
+reasons about it. Such definitions are used to translate optimization rules into conjunctions for SMT solvers to find satisfiability.
 
 However, we found that among the translated conjunctions, especially for the term refinement proof obligation, 
-Nitpick is unable to support \emph{representative functions} to properly map an Integer quotient type (See appendix \ref{app:quotientType}) 
+Nitpick is unable to support \emph{representative functions} to properly map an Integer quotient type \cite[Sec. 3.7]{isabelleNitpick} 
 into the respective first-order relational logic \cite[Ch. 8]{isabelleNitpick}. This is explicitly mentioned as a known bug inside Nitpick, 
 and should be amended by defining a \emph{term postprocessor} that converts such quotient type into a standard mathematical notation 
 \cite[Sec. 3.7]{isabelleNitpick} or correcting underspecified functions \cite[Ch. 8]{isabelleNitpick}. 
@@ -111,6 +232,69 @@ To quote from Blanchette \cite[Ch. 8]{isabelleNitpick}:
 
 \section{Evaluation of GraalVM's Source Code Annotations}
 
-\todo[inline]{add table of graal annotation evaluation}
+\begin{table}[!htb]
+    \centering
+    \begin{tabular}{llll}
+      \toprule
+      Result & \#Rules & Mean \pm\ \textit{SD} \\
+      \midrule
+      Failed & 12 & 73.78 \pm\ 4.66 \\
+      Found Auto Proof & 1 & 29.22 \pm\ 0 \\
+      Found Proof & 19 & 62.19 \pm\ 25.20 \\
+      Found Counterexample & 3 & 40.79 \pm\ 5.10 \\
+      Malformed & 21 & 38.02 \pm\ 5.16 \\
+      Type Error & 40 & 37.85 \pm\ 5.43 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Evaluation of each existing GraalVM source code annotation based on runtime (in seconds)}
+    \label{tab:evaluationGraal}
+\end{table}
 
-\lipsum[1]
+While the evaluation of existing GraalVM source code annotations (See Table \ref{tab:evaluationGraal}) is in line with the evaluation of 
+Veriopt's existing optimization rules, one thing that stood out is the presence of significantly more optimization rules that have type 
+unification errors. This can be attributed to the factors discussed in Section \ref{sec:evaluateMalformed}, where it is noted that the 
+grammar of Veriopt's DSL can be rather ambiguous. This would also prove to be a challenge for GraalVM's developers to effectively integrate 
+the DSL into their development workflow.
+
+Integration would mean that the capabilities of VeriTest are extended into a language server protocol (LSP) to provide 
+feedback while processing source code annotations in the background (See Section \ref{sec:modelDrivenDevelopment}). However, extending 
+VeriTest into an LSP would require the DSL's grammar to be formalized such that a typical parser would be able to construct an abstract 
+syntax tree (AST) for the DSL. Building such an AST would also mean that VeriTest can be extended to incorporate some metrics of static analysis,
+allowing for an intelligent evaluation by building equivalent theorems (i.e., Figure \ref{fig:ConditionalEvaluation}) 
+that would allow Isabelle to reason better.
+
+\section{Challenges}
+
+\begin{table}[!htb]
+    \centering
+    \begin{tabular}{lll}
+      \toprule
+      File Extension & Total LoC \\
+      \midrule
+      .java (Java classes) & 1751 \\
+      .md (Markdown documents) & 1446 \\
+      .thy (Isabelle theory files) & 952 \\
+      .pl (Perl scripts) & 60 \\
+      .py (Python scripts) & 56 \\
+      .sh (Bash scripts) & 52 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Total lines of code (LoC) written for VeriTest}
+    \label{tab:locTable}
+\end{table}
+
+Although the volume of code written reflects the efforts invested in this project, as illustrated by Table \ref{tab:locTable}, it does not 
+adequately capture the full extent of the effort expended. Much of the effort is put into experimenting and capturing the full extent 
+of the capabilities of Isabelle Server \cite{isabelleSystem} and their viability as a solution to this project. As a result of our due diligence, 
+we discovered several bugs in Isabelle and identified future considerations for Veriopt's DSL \cite{Term_Graph_Optimizations}.
+
+Furthermore, exploring the viability of Isabelle Server also meant that exploring the source code of Isabelle is necessary, as 
+Isabelle's documentation is not always the most descriptive. Isabelle's source code is complex and challenging to 
+read, which highlights the considerable effort invested in this project. This also proved to be a challenge for packaging 
+Isabelle into a Docker container (See Section \ref{sec:Containerization}), as the dependencies of Isabelle are not explicitly stated 
+anywhere in the documentation.
+
+Moreover, careful considerations and analysis are made to ensure that VeriTest implements a mutually exclusive and concurrent analysis of 
+the optimization rule, ensuring freedom from starvation for each invocation (See Section \ref{sec:implementation}). An elegant and 
+well-crafted implementation is not necessarily reflected in the sheer volume of code written, but rather in the simplicity and modularity 
+of the solution.

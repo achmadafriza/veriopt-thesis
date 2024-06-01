@@ -1,12 +1,905 @@
 \begin{appendices}
 \cleardoublepage
 
-\chapter{Example Appendix Item}
-\todo[inline]{Appendix: Appendices are useful for supplying necessary details or explanations
-which do not seem to fit into the main text, perhaps because they are
-too long and would distract the reader from the central argument.
-Appendices are also used for program listings.}
-\lipsum[50-52]
+\lstset{
+    escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
+}
 
+\chapter{Containerization of VeriTest}
+\label{app:Containerization}
+
+\begin{lstlisting}
+    FROM gradle:8.6.0-jdk21-graal AS GRADLE_CACHE
+
+    RUN mkdir -p /home/gradle/cache_home
+
+    ENV GRADLE_USER_HOME /home/gradle/cache_home
+    COPY build.gradle /home/gradle/java-code/
+    COPY settings.gradle /home/gradle/java-code/
+
+    WORKDIR /home/gradle/java-code
+    RUN gradle clean build -i --stacktrace
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    FROM gradle:8.6.0-jdk21-graal AS GRADLE_BUILD
+
+    COPY --from=GRADLE_CACHE /home/gradle/cache_home /home/gradle/.gradle
+    COPY . /usr/src/code
+    WORKDIR /usr/src/code
+
+    USER root
+    RUN gradle bootJar -i --stacktrace
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    FROM ubuntu:22.04 AS VERIOPT
+
+    WORKDIR /home
+    RUN apt update && \
+        apt install -y wget unzip && \
+        wget --no-check-certificate -O veriopt.zip https://github.com/uqcyber/veriopt-releases/archive/main.zip && \
+        unzip veriopt.zip && \
+        rm veriopt.zip && \
+        sed -i 's/document\s*=\s*.*\s*,/document = false,/g' /home/veriopt-releases-main/ROOT && \
+        apt remove -y wget unzip && \
+        apt autoremove -y && \
+        rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    (*@ \newpage @*)
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    FROM makarius/isabelle:Isabelle2023 AS ISABELLE_BUILD
+
+    COPY --chown=isabelle:isabelle --from=VERIOPT /home/veriopt-releases-main /home/isabelle/source
+
+    WORKDIR /home/isabelle/source
+    RUN /home/isabelle/Isabelle/bin/isabelle build -v -o system_heaps -b HOL-Library && \
+        /home/isabelle/Isabelle/bin/isabelle build -R -v -d . -o system_heaps -o show_question_marks=false -o document=false -o quick_and_dirty -b Canonicalizations && \
+        /home/isabelle/Isabelle/bin/isabelle build -v -d . -o system_heaps -o show_question_marks=false -o document=false -o quick_and_dirty -b Canonicalizations
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    FROM ghcr.io/graalvm/graalvm-community:21 AS VERITEST
+
+    COPY --from=GRADLE_BUILD /usr/src/code/build/libs/*.jar /root/app/app.jar
+    COPY --from=GRADLE_BUILD /usr/src/code/cmd /root/cmd
+
+    COPY --from=ISABELLE_BUILD /home/isabelle/Isabelle /root/Isabelle
+
+    COPY --from=VERIOPT /home/veriopt-releases-main /root/source
+
+    WORKDIR /root/cmd
+
+    CMD ["./start.sh"]
+\end{lstlisting}
+
+\chapter{Perl Script to Generate Test Cases}
+\label{app:supportTool}
+
+\begin{lstlisting}[language=perl]
+    #!/usr/bin/perl
+    use strict;
+    use warnings;
+    use JSON;
+    use Digest::MD5 qw(md5_hex);
+
+    # Check for the correct number of arguments
+    unless (@ARGV == 2) {
+        die "Usage: $0 <input_file> <output_directory>\n";
+    }
+
+    my $filename = $ARGV[0];
+    open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
+
+    my $json = JSON->new->allow_nonref;
+
+    # Read output directory from command line argument and ensure it ends with a slash
+    my $output_directory = $ARGV[1];
+    $output_directory .= '/' unless $output_directory =~ /\/$/;
+
+    # Hash to keep track of duplicate request_id counts and written theories
+    my %request_id_count;
+    my %written_theories;
+
+    my $current_request_id = '';
+    my $collecting = 0;
+    my $data = '';
+
+    my $optimizationRegex = qr/.*:\d+:optimization\s+([^:]+): (*@$"$@*)(.*)$/;
+    my $newOptimizationRegex = qr/^.*:\d+:optimization/;
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    (*@ \newpage @*)
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ($line =~ $optimizationRegex) {
+            if ($collecting) {
+                # Save the previous record to its own file if it's unique
+                save_to_file($current_request_id, $data);
+                $data = '';
+            }
+            # Start a new record
+            $current_request_id = $1;
+            $data = $2;
+            $collecting = 1;  # Start collecting lines
+        } elsif ($collecting) {
+            # Continue collecting lines if they do not start a new record
+            if ($line =~ $newOptimizationRegex) {
+                # If a new record starts, save the previous if unique and reset
+                save_to_file($current_request_id, $data);
+                $data = '';
+                $collecting = 0;
+                redo;  # Re-evaluate this line because it's a new record start
+            } else {
+                $data .= "\n" . $line;
+            }
+        }
+    }
+
+    # Save the last record if it's unique
+    if ($collecting) {
+        save_to_file($current_request_id, $data);
+    }
+
+    close $fh;
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    (*@ \newpage @*)
+    (*@ \noindent\rule{0.8\textwidth}{0.2pt} @*)
+    sub save_to_file {
+        my ($request_id, $theory) = @_;
+        
+        # Remove everything from the last escaped quote to the end of the string
+        $theory =~ s/\(*@$"$@*).*$//s;  # The 's' modifier allows '.' to match newline characters
+        $theory =~ s/^\s+|\s+$//g;
+        
+        my $theory_hash = md5_hex($theory);
+        # Check if this theory has already been written
+        return if $written_theories{$theory_hash};
+
+        # Mark this theory as written
+        $written_theories{$theory_hash} = 1;
+
+        # Increment the count for the current request_id or initialize it
+        $request_id_count{lc($request_id)}++;
+        # Prepend the count to the request_id for the filename
+        my $unique_request_id = $request_id . "_" . $request_id_count{lc($request_id)};
+        my $output_file = $output_directory . $unique_request_id . ".json";
+        $output_file =~ s/\s+/_/g; # Replace spaces with underscores for filenames
+
+        # Ensure the output directory exists or create it
+        unless (-d $output_directory) {
+            mkdir $output_directory or die "Unable to create directory '$output_directory': $!";
+        }
+
+        open(my $out_fh, '>', $output_file) or die "Could not open file '$output_file' $!";
+        print $out_fh $json->encode({ request_id => $unique_request_id, theory => $theory });
+        close $out_fh;
+    }
+\end{lstlisting}
+
+\chapter{Mutated Optimization Rules}
+\label{app:mutatedOptRules}
+
+\begin{lstlisting}
+    // mapsto to longmapsto
+    optimization AbsIdempotence: "abs(abs(Rep_int32 e)) (*@$\longmapsto$@*) abs(Rep_int32 e)" 
+    
+    // mapsto to longmapsto
+    optimization AbsNegate: "abs(-e) (*@$\longmapsto$@*) abs(e) when is_IntegerStamp (stamp_expr e)"
+    
+    // 0 to 1
+    optimization AddNeutral: "(e + (const (IntVal 32 1))) (*@$\longmapsto$@*) e" 
+    
+    // 0 to 1
+    optimization AddNeutral: "(e + (const (IntVal 32 1))) (*@$\longmapsto$@*) e when (stamp_expr e = IntegerStamp 32 l u)"
+    
+    // b to 128
+    optimization AndNeutral: "(x & ~(const (IntVal 128 0))) (*@$\longmapsto$@*) x 
+       when (wf_stamp x (*@$\land$@*) stamp_expr x = IntegerStamp 128 lo hi)"
+    
+    
+    // add ~
+    optimization AndRightFallThrough: "(x & y) (*@$\longmapsto$@*) y
+                                    when ~(((and (not (IRExpr_down x)) (IRExpr_up y)) = 0))"
+
+    // << to >>
+    optimization AndSignExtend: "BinaryExpr BinAnd (UnaryExpr (UnarySignExtend In Out) (x)) 
+                                                   (const (new_int b e))
+                                  (*@$\longmapsto$@*) (UnaryExpr (UnaryZeroExtend In Out) (x))
+                                      when (e = (1 >> In) - 1)"
+
+    // remove precondition
+    optimization BinaryFoldConstant: "BinaryExpr op (const e1) (const e2) (*@$\longmapsto$@*)
+                                      ConstantExpr (bin_eval op e1 e2)" 
+
+    // < to >
+    optimization condition_bounds_x: "((u > v) ? x : y) (*@$\longmapsto$@*) x 
+        when (stamp_under (stamp_expr u) (stamp_expr v) (*@$\land$@*) wf_stamp u (*@$\land$@*) wf_stamp v)" 
+
+    // < to >=
+    optimization condition_bounds_x: "((u (*@$\ge$@*) v) ? x : y) (*@$\longmapsto$@*) x 
+        when (stamp_under (stamp_expr u) (stamp_expr v) (*@$\land$@*) wf_stamp u (*@$\land$@*) wf_stamp v)" 
+
+    // < to >
+    optimization ConditionalEliminateKnownLess: "((x > y) ? x : y) (*@$\longmapsto$@*) x 
+                                     when (stamp_under (stamp_expr x) (stamp_expr y)
+                                          (*@$\land$@*) wf_stamp x (*@$\land$@*) wf_stamp y)" 
+
+    // < to >=
+    optimization ConditionalEliminateKnownLess: "((x (*@$\ge$@*) y) ? x : y) (*@$\longmapsto$@*) x 
+                                     when (stamp_under (stamp_expr x) (stamp_expr y)
+                                          (*@$\land$@*) wf_stamp x (*@$\land$@*) wf_stamp y)"
+
+    // missing colon
+    optimization ConditionalEqualBranches: "(e ? x  x) (*@$\longmapsto$@*) x" . 
+    
+    // y to x
+    optimization ConditionalEqualIsRHS: "((x eq y) ? x : y) (*@$\longmapsto$@*) x" 
+
+    // y to x
+    optimization ConditionalEqualIsRHS: "((x eq x) ? x : y) (*@$\longmapsto$@*) y" 
+
+    // add !
+    optimization ConditionalEqualIsRHS: "(!(x eq y) ? x : y) (*@$\longmapsto$@*) y" 
+
+    // add ~
+    optimization ConditionalEqualIsRHS: "(~(x eq y) ? x : y) (*@$\longmapsto$@*) y" 
+
+    // missing isBoolean
+    optimization ConditionalExtractCondition2: "exp[(c ? false : true)] (*@$\longmapsto$@*) !c" 
+
+    // missing exp
+    optimization ConditionalExtractCondition2: "(c ? false : true) (*@$\longmapsto$@*) !c
+                                              when isBoolean c" 
+
+    // ! to ~
+    optimization ConditionalExtractCondition2: "exp[(c ? false : true)] (*@$\longmapsto$@*) ~c
+                                              when isBoolean c" 
+
+    // swap true and false
+    optimization ConditionalExtractCondition2: "exp[(c ? true : false)] (*@$\longmapsto$@*) ~c
+                                              when isBoolean c" 
+    
+    // true to false
+    optimization DefaultTrueBranch: "(false ? x : y) (*@$\longmapsto$@*) x" . 
+    
+    // false to true
+    optimization EliminateRedundantFalse: "x | true (*@$\longmapsto$@*) x" 
+
+    // BinOr to ShortCircuitOr
+    optimization EliminateRedundantFalse: "x || false (*@$\longmapsto$@*) x" 
+
+    // false to true
+    optimization EliminateRedundantFalse: "(x (*@$\oplus$@*) true) (*@$\longmapsto$@*) x" 
+
+    // 0 to 1
+    optimization flipX: "((x eq (const (IntVal 32 1))) ? 
+                                (const (IntVal 32 1)) : (const (IntVal 32 0))) (*@$\longmapsto$@*) x (*@$\oplus$@*) (const (IntVal 32 1))
+                                 when (x = ConstantExpr (IntVal 32 0) | 
+                                      (x = ConstantExpr (IntVal 32 1)))" 
+
+    // (*@$\oplus$@*) to ^ (java xor)
+    optimization flipX: "((x eq (const (IntVal 32 1))) ? 
+                                (const (IntVal 32 1)) : (const (IntVal 32 0))) (*@$\longmapsto$@*) x ^ (const (IntVal 32 1))
+                                 when (x = ConstantExpr (IntVal 32 0) | 
+                                      (x = ConstantExpr (IntVal 32 1)))" 
+
+    // ConstantExpr to const
+    optimization flipX: "((x eq (const (IntVal 32 1))) ? 
+                                (const (IntVal 32 1)) : (const (IntVal 32 0))) (*@$\longmapsto$@*) x (*@$\oplus$@*) (const (IntVal 32 1))
+                                 when (x = const (IntVal 32 0) | 
+                                      (x = const (IntVal 32 1)))" 
+                    
+    // mapsto to longmapsto
+    optimization MulNegate: "(x * const (-1) ) (*@$\longmapsto$@*) -x when (stamp_expr x = IntegerStamp 32 l u)" 
+    
+    // ConstantExpr to ConstExpr
+    optimization MulNeutral: "x * ConstExpr (IntVal b 1) (*@$\longmapsto$@*) x" 
+
+    // ConstantExpr to ConstNode
+    optimization MulNeutral: "x * ConstNode (IntVal b 1) (*@$\longmapsto$@*) x" 
+
+    // ConstantExpr to ConstantNode
+    optimization MulNeutral: "x * ConstantNode (IntVal b 1) (*@$\longmapsto$@*) x" 
+
+    // IntVal b 1 to 1
+    optimization MulNeutral: "x * const (1) (*@$\longmapsto$@*) x" 
+
+    // 0 to 1
+    optimization normalizeX: "((x eq const (IntVal 32 1)) ? 
+                                    (const (IntVal 32 0)) : (const (IntVal 32 1))) (*@$\longmapsto$@*) x
+                                    when stamp_expr x = IntegerStamp 32 0 1 (*@$\land$@*) wf_stamp x (*@$\land$@*)
+                                         isBoolean x" 
+
+    // ~ to !
+    optimization NotCancel: "exp[!(!a)] (*@$\longmapsto$@*) a" 
+
+    // missing exp[]
+    optimization NotCancel: "!(!a) (*@$\longmapsto$@*) a" 
+
+    // ~ to !
+    optimization NotCancel: "exp[~(!a)] (*@$\longmapsto$@*) a" 
+
+    // ~ to !
+    optimization NotCancel: "exp[!(~a)] (*@$\longmapsto$@*) a" 
+
+    // - to +
+    optimization RedundantAddSub: "(b + a) + b (*@$\longmapsto$@*) a" 
+
+    // < to >=
+    optimization SubNegativeConstant: "(x - (const (IntVal b y))) (*@$\longmapsto$@*) 
+                                        x + (const (IntVal b y))  when (y (*@$\ge$@*) 0)"  
+        
+    // < to >
+    optimization SubNegativeConstant: "(x - (const (IntVal b y))) (*@$\longmapsto$@*) 
+                                        x + (const (IntVal b y))  when (y > 0)"  
+
+    // remove precondition
+    optimization SubSelfIsZero: "(x - x) (*@$\longmapsto$@*) const IntVal b 0" 
+
+    // missing brackets
+    optimization SubThenAddLeft: "(x - x + y) (*@$\longmapsto$@*) -y" 
+
+    // remove precondition
+    optimization XorSelfIsFalse: "(x (*@$\oplus$@*) x) (*@$\longmapsto$@*) false" 
+
+    // false to true
+    optimization XorSelfIsFalse: "(x (*@$\oplus$@*) x) (*@$\longmapsto$@*) true when 
+                          (wf_stamp x (*@$\land$@*) stamp_expr x = default_stamp)" 
+\end{lstlisting}
+
+\chapter{Evaluation on Veriopt's Optimization Rules}
+
+\begin{longtable}{L{0.25\textwidth} L{0.2\textwidth}  c  c  c  c  c } 
+    \toprule
+    Optimization Rule & Result & Mean & N & Std. Dev & Min & Max \\ \midrule 
+    AbsIdempotence\_1 & MALFORMED & 36.8608 & 5 & 4.04082 & 30.17 & 40.13 \\ \midrule 
+    & Total & 36.8608 & 5 & 4.04082 & 30.17 & 40.13 \\ \midrule 
+    AbsNegate\_1 & MALFORMED & 40.2000 & 5 & 5.01788 & 33.01 & 45.01 \\ \midrule 
+    & Total & 40.2000 & 5 & 5.01788 & 33.01 & 45.01 \\ \midrule 
+    AddLeftNegateToSub\_1 & FOUND\_PROOF & 113.9996 & 5 & 6.96647 & 108.00 & 123.01 \\ \midrule 
+    & Total & 113.9996 & 5 & 6.96647 & 108.00 & 123.01 \\ \midrule 
+    AddNeutral\_1 & FOUND\_PROOF & 71.8072 & 5 & 8.14791 & 66.08 & 85.97 \\ \midrule 
+    & Total & 71.8072 & 5 & 8.14791 & 66.08 & 85.97 \\ \midrule 
+    AddNeutral\_2 & FOUND\_PROOF & 68.3940 & 5 & 1.25673 & 66.15 & 69.00 \\ \midrule 
+    & Total & 68.3940 & 5 & 1.25673 & 66.15 & 69.00 \\ \midrule 
+    AddNot\_1 & FAILED & 69.0100 & 5 & 2.96315 & 65.90 & 72.00 \\ \midrule 
+    & Total & 69.0100 & 5 & 2.96315 & 65.90 & 72.00 \\ \midrule 
+    AddNot2\_1 & FAILED & 123.3238 & 5 & 0.77323 & 122.49 & 124.49 \\ \midrule 
+    & Total & 123.3238 & 5 & 0.77323 & 122.49 & 124.49 \\ \midrule 
+    AddRightNegateToSub\_1 & FAILED & 69.1270 & 5 & 2.73379 & 66.06 & 71.89 \\ \midrule 
+    & Total & 69.1270 & 5 & 2.73379 & 66.06 & 71.89 \\ \midrule 
+    AddShiftConstantRight\_1 & FAILED & 69.0274 & 5 & 2.07543 & 66.05 & 71.92 \\ \midrule 
+    & Total & 69.0274 & 5 & 2.07543 & 66.05 & 71.92 \\ \midrule 
+    AddShiftConstantRight\_2 & FAILED & 70.7876 & 5 & 1.61937 & 68.99 & 72.01 \\ \midrule 
+    & Total & 70.7876 & 5 & 1.61937 & 68.99 & 72.01 \\ \midrule 
+    AndEqual\_1 & FOUND\_PROOF & 66.4082 & 5 & 4.38136 & 63.09 & 74.07 \\ \midrule 
+    & Total & 66.4082 & 5 & 4.38136 & 63.09 & 74.07 \\ \midrule 
+    AndEqual\_2 & MALFORMED & 37.1062 & 5 & 4.73613 & 29.53 & 42.00 \\ \midrule 
+    & Total & 37.1062 & 5 & 4.73613 & 29.53 & 42.00 \\ \midrule 
+    AndLeftFallthrough\_1 & MALFORMED & 38.9994 & 5 & 4.74326 & 33.00 & 45.00 \\ \midrule 
+    & Total & 38.9994 & 5 & 4.74326 & 33.00 & 45.00 \\ \midrule 
+    AndNeutral\_1 & FOUND\_PROOF & 71.2144 & 5 & 3.78492 & 67.64 & 76.83 \\ \midrule 
+    & Total & 71.2144 & 5 & 3.78492 & 67.64 & 76.83 \\ \midrule 
+    AndNeutral\_2 & MALFORMED & 37.3844 & 5 & 7.61193 & 30.00 & 47.99 \\ \midrule 
+    & Total & 37.3844 & 5 & 7.61193 & 30.00 & 47.99 \\ \midrule 
+    AndNots\_1 & FAILED & 72.3512 & 5 & 6.26297 & 66.26 & 82.75 \\ \midrule 
+    & Total & 72.3512 & 5 & 6.26297 & 66.26 & 82.75 \\ \midrule 
+    AndRightFallthrough\_1 & MALFORMED & 36.8480 & 5 & 4.80699 & 28.25 & 39.01 \\ \midrule 
+    & Total & 36.8480 & 5 & 4.80699 & 28.25 & 39.01 \\ \midrule 
+    AndSelf\_1 & FAILED & 145.2112 & 5 & 7.94462 & 136.58 & 154.67 \\ \midrule 
+    & Total & 145.2112 & 5 & 7.94462 & 136.58 & 154.67 \\ \midrule 
+    AndSelf2\_1 & FAILED & 67.1934 & 5 & 6.64696 & 60.25 & 77.57 \\ \midrule 
+    & Total & 67.1934 & 5 & 6.64696 & 60.25 & 77.57 \\ \midrule 
+    AndShiftConstantRight\_1 & FAILED & 70.4710 & 5 & 2.05361 & 68.98 & 73.39 \\ \midrule 
+    & Total & 70.4710 & 5 & 2.05361 & 68.98 & 73.39 \\ \midrule 
+    AndShiftConstantRight\_2 & FAILED & 69.6100 & 5 & 2.71004 & 65.98 & 73.46 \\ \midrule 
+    & Total & 69.6100 & 5 & 2.71004 & 65.98 & 73.46 \\ \midrule 
+    AndSignExtend\_1 & FOUND\_PROOF & 69.1106 & 5 & 1.98736 & 66.51 & 72.11 \\ \midrule 
+    & Total & 69.1106 & 5 & 1.98736 & 66.51 & 72.11 \\ \midrule 
+    BinaryFoldConstant\_1 & FOUND\_PROOF & 96.6006 & 5 & 1.37825 & 95.88 & 99.06 \\ \midrule 
+    & Total & 96.6006 & 5 & 1.37825 & 95.88 & 99.06 \\ \midrule 
+    BinaryFoldConstant\_2 & FOUND\_PROOF & 94.8050 & 5 & 2.64327 & 90.08 & 96.08 \\ \midrule 
+    & Total & 94.8050 & 5 & 2.64327 & 90.08 & 96.08 \\ \midrule 
+    condition\_bounds\_x\_1 & FOUND\_PROOF & 69.0816 & 5 & 0.24518 & 68.69 & 69.31 \\ \midrule 
+    & Total & 69.0816 & 5 & 0.24518 & 68.69 & 69.31 \\ \midrule 
+    condition\_bounds\_y\_1 & FOUND\_PROOF & 66.5922 & 5 & 1.15881 & 65.92 & 68.65 \\ \midrule 
+    & Total & 66.5922 & 5 & 1.15881 & 65.92 & 68.65 \\ \midrule 
+    ConditionalEliminateKnownLess\_1 & FOUND\_PROOF & 71.3850 & 5 & 2.89079 & 66.97 & 73.94 \\ \midrule 
+    & Total & 71.3850 & 5 & 2.89079 & 66.97 & 73.94 \\ \midrule 
+    ConditionalEliminateKnownLess\_2 & MALFORMED & 38.6058 & 5 & 4.14825 & 34.03 & 44.99 \\ \midrule 
+    & Total & 38.6058 & 5 & 4.14825 & 34.03 & 44.99 \\ \midrule 
+    ConditionalEliminateKnownLess\_3 & MALFORMED & 38.3994 & 5 & 2.50771 & 36.00 & 42.00 \\ \midrule 
+    & Total & 38.3994 & 5 & 2.50771 & 36.00 & 42.00 \\ \midrule 
+    ConditionalEqualBranches\_1 & FOUND\_AUTO & 39.0014 & 5 & 0.00744 & 38.99 & 39.01 \\ \midrule 
+    & Total & 39.0014 & 5 & 0.00744 & 38.99 & 39.01 \\ \midrule 
+    ConditionalEqualBranches\_2 & FOUND\_AUTO & 38.9994 & 5 & 0.01128 & 38.99 & 39.01 \\ \midrule 
+    & Total & 38.9994 & 5 & 0.01128 & 38.99 & 39.01 \\ \midrule 
+    ConditionalEqualIsRHS\_1 & FAILED & 72.5772 & 5 & 4.77902 & 69.12 & 80.75 \\ \midrule 
+    & Total & 72.5772 & 5 & 4.77902 & 69.12 & 80.75 \\ \midrule 
+    ConditionalEqualIsRHS\_2 & FAILED & 69.6014 & 5 & 2.44543 & 66.02 & 71.93 \\ \midrule 
+    & Total & 69.6014 & 5 & 2.44543 & 66.02 & 71.93 \\ \midrule 
+    ConditionalExtractCondition\_1 & FAILED & 68.9022 & 5 & 2.10412 & 66.03 & 71.97 \\ \midrule 
+    & Total & 68.9022 & 5 & 2.10412 & 66.03 & 71.97 \\ \midrule 
+    ConditionalExtractCondition2\_1 & FOUND\_PROOF & 66.6672 & 5 & 3.01269 & 64.18 & 70.25 \\ \midrule 
+    & Total & 66.6672 & 5 & 3.01269 & 64.18 & 70.25 \\ \midrule 
+    ConditionalIntegerEquals\_1\_1 & FAILED & 74.4882 & 5 & 1.38439 & 72.03 & 75.38 \\ \midrule 
+    & Total & 74.4882 & 5 & 1.38439 & 72.03 & 75.38 \\ \midrule 
+    ConditionalIntegerEquals\_2\_1 & FAILED & 73.2258 & 5 & 1.63229 & 71.88 & 75.01 \\ \midrule 
+    & Total & 73.2258 & 5 & 1.63229 & 71.88 & 75.01 \\ \midrule 
+    DefaultFalseBranch\_1 & FOUND\_AUTO & 37.0574 & 5 & 5.69286 & 29.29 & 45.01 \\ \midrule 
+    & Total & 37.0574 & 5 & 5.69286 & 29.29 & 45.01 \\ \midrule 
+    DefaultTrueBranch\_1 & FOUND\_AUTO & 39.6014 & 5 & 3.28671 & 35.99 & 42.01 \\ \midrule 
+    & Total & 39.6014 & 5 & 3.28671 & 35.99 & 42.01 \\ \midrule 
+    distribute\_sub\_1 & FAILED & 70.1616 & 5 & 2.60717 & 65.96 & 71.95 \\ \midrule 
+    & Total & 70.1616 & 5 & 2.60717 & 65.96 & 71.95 \\ \midrule 
+    DistributeSubtraction\_1 & FAILED & 71.1220 & 5 & 5.06686 & 66.21 & 79.47 \\ \midrule 
+    & Total & 71.1220 & 5 & 5.06686 & 66.21 & 79.47 \\ \midrule 
+    DivItself\_1 & FAILED & 130.5130 & 5 & 6.14724 & 121.73 & 138.86 \\ \midrule 
+    & Total & 130.5130 & 5 & 6.14724 & 121.73 & 138.86 \\ \midrule 
+    EliminateRedundantFalse\_1 & FOUND\_PROOF & 67.5126 & 5 & 2.09928 & 65.54 & 70.11 \\ \midrule 
+    & Total & 67.5126 & 5 & 2.09928 & 65.54 & 70.11 \\ \midrule 
+    EliminateRedundantFalse\_2 & FOUND\_PROOF & 68.4922 & 5 & 4.04603 & 64.86 & 75.23 \\ \midrule 
+    & Total & 68.4922 & 5 & 4.04603 & 64.86 & 75.23 \\ \midrule 
+    EliminateRedundantNegative\_1 & FAILED & 71.2886 & 5 & 2.21591 & 69.10 & 74.36 \\ \midrule 
+    & Total & 71.2886 & 5 & 2.21591 & 69.10 & 74.36 \\ \midrule 
+    EliminateRHS\_64\_1 & FAILED & 71.2576 & 5 & 1.24545 & 69.05 & 71.95 \\ \midrule 
+    & Total & 71.2576 & 5 & 1.24545 & 69.05 & 71.95 \\ \midrule 
+    flipX\_1 & FOUND\_AUTO & 37.4988 & 4 & 3.00051 & 33.00 & 39.01 \\ \midrule 
+    & FOUND\_PROOF & 44.9920 & 1 &  & 44.99 & 44.99 \\ \midrule 
+    & Total & 38.9974 & 5 & 4.24052 & 33.00 & 44.99 \\ \midrule 
+    flipX2\_1 & FOUND\_AUTO & 37.0480 & 5 & 5.29949 & 29.24 & 42.01 \\ \midrule 
+    & Total & 37.0480 & 5 & 5.29949 & 29.24 & 42.01 \\ \midrule 
+    MaskOutRHS\_1 & NO\_SUBGOAL & 38.9996 & 5 & 0.00627 & 38.99 & 39.01 \\ \midrule 
+    & Total & 38.9996 & 5 & 0.00627 & 38.99 & 39.01 \\ \midrule 
+    MulEliminator\_1 & FOUND\_PROOF & 74.7916 & 5 & 3.48010 & 70.06 & 78.00 \\ \midrule 
+    & Total & 74.7916 & 5 & 3.48010 & 70.06 & 78.00 \\ \midrule 
+    MulEliminator\_2 & MALFORMED & 37.4070 & 5 & 4.14440 & 31.05 & 42.01 \\ \midrule 
+    & Total & 37.4070 & 5 & 4.14440 & 31.05 & 42.01 \\ \midrule 
+    MulNegate\_1 & FOUND\_PROOF & 73.0076 & 5 & 2.53701 & 70.16 & 76.86 \\ \midrule 
+    & Total & 73.0076 & 5 & 2.53701 & 70.16 & 76.86 \\ \midrule 
+    MulNegate\_2 & MALFORMED & 37.9932 & 5 & 3.09781 & 33.96 & 42.00 \\ \midrule 
+    & Total & 37.9932 & 5 & 3.09781 & 33.96 & 42.00 \\ \midrule 
+    MulNeutral\_1 & FOUND\_PROOF & 69.6430 & 5 & 2.93069 & 65.95 & 74.08 \\ \midrule 
+    & Total & 69.6430 & 5 & 2.93069 & 65.95 & 74.08 \\ \midrule 
+    MulNeutral\_2 & FOUND\_PROOF & 66.9500 & 5 & 2.78694 & 62.61 & 70.19 \\ \midrule 
+    & Total & 66.9500 & 5 & 2.78694 & 62.61 & 70.19 \\ \midrule 
+    MulPower2\_1 & FAILED & 67.9712 & 5 & 1.46939 & 66.00 & 69.09 \\ \midrule 
+    & Total & 67.9712 & 5 & 1.46939 & 66.00 & 69.09 \\ \midrule 
+    MulPower2Add1\_1 & FAILED & 72.6552 & 5 & 1.46457 & 71.98 & 75.28 \\ \midrule 
+    & Total & 72.6552 & 5 & 1.46457 & 71.98 & 75.28 \\ \midrule 
+    MulPower2Sub1\_1 & FAILED & 68.9422 & 5 & 3.57582 & 62.88 & 71.69 \\ \midrule 
+    & Total & 68.9422 & 5 & 3.57582 & 62.88 & 71.69 \\ \midrule 
+    NegateCancel\_1 & FAILED & 70.3684 & 5 & 2.80912 & 65.92 & 72.43 \\ \midrule 
+    & Total & 70.3684 & 5 & 2.80912 & 65.92 & 72.43 \\ \midrule 
+    NegateConditionFlipBranches\_1 & FAILED & 71.4162 & 5 & 1.35428 & 69.00 & 72.08 \\ \midrule 
+    & Total & 71.4162 & 5 & 1.35428 & 69.00 & 72.08 \\ \midrule 
+    NegativeShift\_1 & FAILED & 70.3488 & 5 & 2.34894 & 66.86 & 72.10 \\ \midrule 
+    & Total & 70.3488 & 5 & 2.34894 & 66.86 & 72.10 \\ \midrule 
+    NeverEqNotSelf\_1 & FAILED & 137.9394 & 5 & 1.09936 & 136.95 & 139.63 \\ \midrule 
+    & Total & 137.9394 & 5 & 1.09936 & 136.95 & 139.63 \\ \midrule 
+    normalizeX\_1 & FOUND\_PROOF & 70.1996 & 5 & 4.77967 & 67.07 & 78.55 \\ \midrule 
+    & Total & 70.1996 & 5 & 4.77967 & 67.07 & 78.55 \\ \midrule 
+    normalizeX2\_1 & FOUND\_AUTO & 34.1970 & 4 & 5.56249 & 28.80 & 39.00 \\ \midrule 
+    & FOUND\_PROOF & 48.0020 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    & Total & 36.9580 & 5 & 7.83081 & 28.80 & 48.00 \\ \midrule 
+    NotCancel\_1 & FOUND\_PROOF & 67.6016 & 5 & 2.70756 & 62.82 & 69.18 \\ \midrule 
+    & Total & 67.6016 & 5 & 2.70756 & 62.82 & 69.18 \\ \midrule 
+    NotXorToXor\_1 & FAILED & 188.0008 & 5 & 21.88899 & 160.75 & 214.08 \\ \midrule 
+    & Total & 188.0008 & 5 & 21.88899 & 160.75 & 214.08 \\ \midrule 
+    opt\_conditional\_eliminate\_known\_less\_1 & FAILED & 70.3276 & 5 & 2.75181 & 66.11 & 72.73 \\ \midrule 
+    & Total & 70.3276 & 5 & 2.75181 & 66.11 & 72.73 \\ \midrule 
+    opt\_DivisionByOneIsSelf32\_1 & FAILED & 69.5642 & 5 & 3.11374 & 66.09 & 71.97 \\ \midrule 
+    & Total & 69.5642 & 5 & 3.11374 & 66.09 & 71.97 \\ \midrule 
+    opt\_normalize\_x\_original\_1 & FAILED & 68.8546 & 5 & 2.70214 & 66.07 & 71.83 \\ \midrule 
+    & Total & 68.8546 & 5 & 2.70214 & 66.07 & 71.83 \\ \midrule 
+    OrEqual\_1 & FOUND\_PROOF & 66.7850 & 5 & 2.65995 & 63.18 & 70.38 \\ \midrule 
+    & Total & 66.7850 & 5 & 2.65995 & 63.18 & 70.38 \\ \midrule 
+    OrInverse\_1 & FAILED & 64.7408 & 5 & 2.65660 & 62.88 & 68.84 \\ \midrule 
+    & Total & 64.7408 & 5 & 2.65660 & 62.88 & 68.84 \\ \midrule 
+    OrInverse2\_1 & FAILED & 136.5728 & 5 & 0.90812 & 135.38 & 137.37 \\ \midrule 
+    & Total & 136.5728 & 5 & 0.90812 & 135.38 & 137.37 \\ \midrule 
+    OrNotOperands\_1 & FAILED & 69.5350 & 5 & 2.33398 & 66.18 & 72.00 \\ \midrule 
+    & Total & 69.5350 & 5 & 2.33398 & 66.18 & 72.00 \\ \midrule 
+    OrShiftConstantRight\_1 & FAILED & 68.3546 & 5 & 3.74285 & 63.09 & 71.99 \\ \midrule 
+    & Total & 68.3546 & 5 & 3.74285 & 63.09 & 71.99 \\ \midrule 
+    redundant\_lhs\_add\_1 & FAILED & 86.5026 & 5 & 5.34624 & 82.61 & 95.66 \\ \midrule 
+    & Total & 86.5026 & 5 & 5.34624 & 82.61 & 95.66 \\ \midrule 
+    redundant\_lhs\_x\_or\_1 & FAILED & 81.9728 & 5 & 6.33849 & 72.67 & 88.96 \\ \midrule 
+    & Total & 81.9728 & 5 & 6.33849 & 72.67 & 88.96 \\ \midrule 
+    redundant\_lhs\_y\_or\_1 & FAILED & 78.7754 & 5 & 3.13297 & 73.93 & 81.22 \\ \midrule 
+    & Total & 78.7754 & 5 & 3.13297 & 73.93 & 81.22 \\ \midrule 
+    redundant\_rhs\_x\_or\_1 & FAILED & 80.2422 & 5 & 4.84560 & 76.24 & 87.58 \\ \midrule 
+    & Total & 80.2422 & 5 & 4.84560 & 76.24 & 87.58 \\ \midrule 
+    redundant\_rhs\_y\_or\_1 & FAILED & 80.7394 & 5 & 2.30875 & 77.40 & 82.81 \\ \midrule 
+    & Total & 80.7394 & 5 & 2.30875 & 77.40 & 82.81 \\ \midrule 
+    RedundantAddSub\_1 & FOUND\_PROOF & 70.4562 & 5 & 2.89715 & 66.19 & 73.95 \\ \midrule 
+    & Total & 70.4562 & 5 & 2.89715 & 66.19 & 73.95 \\ \midrule 
+    RedundantAddSub\_2 & MALFORMED & 38.9994 & 5 & 0.00114 & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9994 & 5 & 0.00114 & 39.00 & 39.00 \\ \midrule 
+    RedundantSubAdd\_1 & FOUND\_PROOF & 71.2046 & 5 & 8.43466 & 65.93 & 86.04 \\ \midrule 
+    & Total & 71.2046 & 5 & 8.43466 & 65.93 & 86.04 \\ \midrule 
+    RedundantSubAdd\_2 & MALFORMED & 37.3924 & 5 & 3.59471 & 30.96 & 39.01 \\ \midrule 
+    & Total & 37.3924 & 5 & 3.59471 & 30.96 & 39.01 \\ \midrule 
+    RedundantSubAdd2\_1 & FOUND\_PROOF & 140.4016 & 5 & 7.76315 & 132.00 & 147.00 \\ \midrule 
+    & Total & 140.4016 & 5 & 7.76315 & 132.00 & 147.00 \\ \midrule 
+    ReturnXOnZeroShift\_1 & FAILED & 71.3120 & 5 & 1.53021 & 68.58 & 72.05 \\ \midrule 
+    & Total & 71.3120 & 5 & 1.53021 & 68.58 & 72.05 \\ \midrule 
+    SubAfterAddLeft\_1 & FOUND\_PROOF & 72.2480 & 5 & 4.09551 & 65.26 & 75.00 \\ \midrule 
+    & Total & 72.2480 & 5 & 4.09551 & 65.26 & 75.00 \\ \midrule 
+    SubAfterAddRight\_1 & FOUND\_PROOF & 69.6252 & 5 & 2.77983 & 67.02 & 74.07 \\ \midrule 
+    & Total & 69.6252 & 5 & 2.77983 & 67.02 & 74.07 \\ \midrule 
+    SubAfterSubLeft\_1 & FAILED & 70.1160 & 5 & 2.58641 & 65.99 & 72.13 \\ \midrule 
+    & Total & 70.1160 & 5 & 2.58641 & 65.99 & 72.13 \\ \midrule 
+    SubNegativeConstant\_1 & NO\_SUBGOAL & 36.8606 & 5 & 4.78497 & 28.30 & 39.01 \\ \midrule 
+    & Total & 36.8606 & 5 & 4.78497 & 28.30 & 39.01 \\ \midrule 
+    SubNegativeConstant\_2 & COUNTEREXAMPLE & 40.7992 & 5 & 4.02314 & 38.99 & 48.00 \\ \midrule 
+    & Total & 40.7992 & 5 & 4.02314 & 38.99 & 48.00 \\ \midrule 
+    SubNegativeValue\_1 & FAILED & 72.2814 & 5 & 0.62427 & 71.99 & 73.40 \\ \midrule 
+    & Total & 72.2814 & 5 & 0.62427 & 71.99 & 73.40 \\ \midrule 
+    SubSelfIsZero\_1 & FAILED & 68.0692 & 5 & 2.41427 & 66.03 & 71.90 \\ \midrule 
+    & Total & 68.0692 & 5 & 2.41427 & 66.03 & 71.90 \\ \midrule 
+    SubSelfIsZero\_2 & FOUND\_PROOF & 177.6476 & 5 & 20.62850 & 147.24 & 200.99 \\ \midrule 
+    & Total & 177.6476 & 5 & 20.62850 & 147.24 & 200.99 \\ \midrule 
+    SubThenAddLeft\_1 & FOUND\_PROOF & 81.0014 & 5 & 22.86855 & 68.91 & 121.84 \\ \midrule 
+    & Total & 81.0014 & 5 & 22.86855 & 68.91 & 121.84 \\ \midrule 
+    SubThenAddRight\_1 & FOUND\_PROOF & 70.7994 & 5 & 2.50392 & 67.02 & 73.80 \\ \midrule 
+    & Total & 70.7994 & 5 & 2.50392 & 67.02 & 73.80 \\ \midrule 
+    SubThenSubLeft\_1 & FOUND\_PROOF & 152.9996 & 5 & 18.61544 & 123.00 & 174.00 \\ \midrule 
+    & Total & 152.9996 & 5 & 18.61544 & 123.00 & 174.00 \\ \midrule 
+    SubtractZero\_1 & FOUND\_PROOF & 74.2148 & 5 & 15.67855 & 65.94 & 101.99 \\ \midrule 
+    & Total & 74.2148 & 5 & 15.67855 & 65.94 & 101.99 \\ \midrule 
+    UnaryConstantFold\_1 & MALFORMED & 37.3824 & 5 & 3.61204 & 30.92 & 39.01 \\ \midrule 
+    & Total & 37.3824 & 5 & 3.61204 & 30.92 & 39.01 \\ \midrule 
+    XorEqNeg1\_64\_1 & FAILED & 69.8170 & 5 & 2.80738 & 65.91 & 73.20 \\ \midrule 
+    & Total & 69.8170 & 5 & 2.80738 & 65.91 & 73.20 \\ \midrule 
+    XorEqZero\_64\_1 & FAILED & 133.4868 & 5 & 2.80689 & 130.43 & 137.72 \\ \midrule 
+    & Total & 133.4868 & 5 & 2.80689 & 130.43 & 137.72 \\ \midrule 
+    XorFallThrough1\_1 & FAILED & 69.8928 & 5 & 2.43540 & 66.10 & 71.92 \\ \midrule 
+    & Total & 69.8928 & 5 & 2.43540 & 66.10 & 71.92 \\ \midrule 
+    XorFallThrough2\_1 & FAILED & 68.2800 & 5 & 3.24721 & 65.34 & 71.85 \\ \midrule 
+    & Total & 68.2800 & 5 & 3.24721 & 65.34 & 71.85 \\ \midrule 
+    XorFallThrough3\_1 & FAILED & 69.7236 & 5 & 2.64008 & 66.11 & 72.68 \\ \midrule 
+    & Total & 69.7236 & 5 & 2.64008 & 66.11 & 72.68 \\ \midrule 
+    XorFallThrough4\_1 & FAILED & 70.6492 & 5 & 1.38303 & 69.15 & 72.01 \\ \midrule 
+    & Total & 70.6492 & 5 & 1.38303 & 69.15 & 72.01 \\ \midrule 
+    XorInverse\_1 & FAILED & 68.1978 & 5 & 1.19642 & 66.13 & 69.01 \\ \midrule 
+    & Total & 68.1978 & 5 & 1.19642 & 66.13 & 69.01 \\ \midrule 
+    XorInverse2\_1 & FAILED & 145.0686 & 5 & 4.21575 & 137.85 & 148.58 \\ \midrule 
+    & Total & 145.0686 & 5 & 4.21575 & 137.85 & 148.58 \\ \midrule 
+    XorIsEqual\_64\_1\_1 & FAILED & 228.3936 & 5 & 34.23598 & 169.80 & 250.85 \\ \midrule 
+    & Total & 228.3936 & 5 & 34.23598 & 169.80 & 250.85 \\ \midrule 
+    XorIsEqual\_64\_2\_1 & FAILED & 72.0072 & 5 & 0.35231 & 71.44 & 72.30 \\ \midrule 
+    & Total & 72.0072 & 5 & 0.35231 & 71.44 & 72.30 \\ \midrule 
+    XorIsEqual\_64\_3\_1 & FAILED & 71.4846 & 5 & 1.34938 & 69.09 & 72.21 \\ \midrule 
+    & Total & 71.4846 & 5 & 1.34938 & 69.09 & 72.21 \\ \midrule 
+    XorIsEqual\_64\_4\_1 & FAILED & 270.2736 & 5 & 245.23649 & 146.10 & 708.20 \\ \midrule 
+    & Total & 270.2736 & 5 & 245.23649 & 146.10 & 708.20 \\ \midrule 
+    XorSelfIsFalse\_1 & FOUND\_PROOF & 136.1898 & 5 & 14.33338 & 125.94 & 156.00 \\ \midrule 
+    & Total & 136.1898 & 5 & 14.33338 & 125.94 & 156.00 \\ \midrule 
+    XorShiftConstantRight\_1 & FAILED & 72.8956 & 5 & 5.88537 & 66.16 & 82.41 \\ \midrule 
+    & Total & 72.8956 & 5 & 5.88537 & 66.16 & 82.41 \\ \midrule 
+    ZeroSubtractValue\_1 & FAILED & 70.1394 & 5 & 2.76388 & 65.77 & 72.03 \\ \midrule 
+    & Total & 70.1394 & 5 & 2.76388 & 65.77 & 72.03 \\ \midrule 
+    Total & FAILED & 87.3304 & 290 & 49.80078 & 60.25 & 708.20 \\ \midrule 
+    & FOUND\_AUTO & 37.7370 & 33 & 3.92665 & 28.80 & 45.01 \\ \midrule 
+    & COUNTEREXAMPLE & 40.7992 & 5 & 4.02314 & 38.99 & 48.00 \\ \midrule 
+    & FOUND\_PROOF & 82.9147 & 162 & 29.43735 & 44.99 & 200.99 \\ \midrule 
+    & MALFORMED & 37.9676 & 65 & 4.02370 & 28.25 & 47.99 \\ \midrule 
+    & NO\_SUBGOAL & 37.9301 & 10 & 3.38333 & 28.30 & 39.01 \\ \midrule 
+    & Total & 76.2027 & 565 & 43.47376 & 28.25 & 708.20 \\ \bottomrule
+
+    \caption{Full results for the evaluation of each existing Veriopt optimization rules based on runtime (in seconds)} % needs to go inside longtable environment
+    \label{tab:fullEvaluationVeriopt}
+\end{longtable}
+
+\chapter{Evaluation on Malformed Optimization Rules}
+
+\begin{longtable}{L{0.25\textwidth} L{0.2\textwidth}  c  c  c  c  c } 
+    \toprule
+    Optimization Rule & Result & Mean & N & Std. Dev & Min & Max \\ \midrule 
+    AbsIdempotence\_1 & TYPE\_ERROR & 26.5800 & 1 &  & 26.58 & 26.58 \\ \midrule 
+    & Total & 26.5800 & 1 &  & 26.58 & 26.58 \\ \midrule 
+    AbsNegate\_1 & TYPE\_ERROR & 37.3060 & 1 &  & 37.31 & 37.31 \\ \midrule 
+    & Total & 37.3060 & 1 &  & 37.31 & 37.31 \\ \midrule 
+    AddNeutral\_1 & FAILED & 82.0780 & 1 &  & 82.08 & 82.08 \\ \midrule 
+    & Total & 82.0780 & 1 &  & 82.08 & 82.08 \\ \midrule 
+    AddNeutral\_2 & FAILED & 72.4990 & 1 &  & 72.50 & 72.50 \\ \midrule 
+    & Total & 72.4990 & 1 &  & 72.50 & 72.50 \\ \midrule 
+    AndNeutral\_1 & FOUND\_PROOF & 67.3350 & 1 &  & 67.34 & 67.34 \\ \midrule 
+    & Total & 67.3350 & 1 &  & 67.34 & 67.34 \\ \midrule 
+    AndRightFallThrough\_1 & FAILED & 75.9740 & 1 &  & 75.97 & 75.97 \\ \midrule 
+    & Total & 75.9740 & 1 &  & 75.97 & 75.97 \\ \midrule 
+    AndSignExtend\_1 & FAILED & 73.8460 & 1 &  & 73.85 & 73.85 \\ \midrule 
+    & Total & 73.8460 & 1 &  & 73.85 & 73.85 \\ \midrule 
+    BinaryFoldConstant\_1 & FOUND\_PROOF & 96.7980 & 1 &  & 96.80 & 96.80 \\ \midrule 
+    & Total & 96.7980 & 1 &  & 96.80 & 96.80 \\ \midrule 
+    condition\_bounds\_x\_1 & TYPE\_ERROR & 35.7200 & 1 &  & 35.72 & 35.72 \\ \midrule 
+    & Total & 35.7200 & 1 &  & 35.72 & 35.72 \\ \midrule 
+    condition\_bounds\_x\_2 & TYPE\_ERROR & 32.3080 & 1 &  & 32.31 & 32.31 \\ \midrule 
+    & Total & 32.3080 & 1 &  & 32.31 & 32.31 \\ \midrule 
+    ConditionalEliminateKnownLess\_1 & TYPE\_ERROR & 32.4500 & 1 &  & 32.45 & 32.45 \\ \midrule 
+    & Total & 32.4500 & 1 &  & 32.45 & 32.45 \\ \midrule 
+    ConditionalEliminateKnownLess\_2 & TYPE\_ERROR & 41.9960 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    & Total & 41.9960 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    ConditionalEqualBranches\_1 & MALFORMED & 35.9850 & 1 &  & 35.99 & 35.99 \\ \midrule 
+    & Total & 35.9850 & 1 &  & 35.99 & 35.99 \\ \midrule 
+    ConditionalEqualIsRHS\_1 & FAILED & 75.1520 & 1 &  & 75.15 & 75.15 \\ \midrule 
+    & Total & 75.1520 & 1 &  & 75.15 & 75.15 \\ \midrule 
+    ConditionalEqualIsRHS\_2 & FAILED & 72.7400 & 1 &  & 72.74 & 72.74 \\ \midrule 
+    & Total & 72.7400 & 1 &  & 72.74 & 72.74 \\ \midrule 
+    ConditionalEqualIsRHS\_3 & TYPE\_ERROR & 29.5520 & 1 &  & 29.55 & 29.55 \\ \midrule 
+    & Total & 29.5520 & 1 &  & 29.55 & 29.55 \\ \midrule 
+    ConditionalEqualIsRHS\_4 & TYPE\_ERROR & 38.5330 & 1 &  & 38.53 & 38.53 \\ \midrule 
+    & Total & 38.5330 & 1 &  & 38.53 & 38.53 \\ \midrule 
+    ConditionalExtractCondition2\_1 & FAILED & 81.5480 & 1 &  & 81.55 & 81.55 \\ \midrule 
+    & Total & 81.5480 & 1 &  & 81.55 & 81.55 \\ \midrule 
+    ConditionalExtractCondition2\_2 & FOUND\_PROOF & 70.3920 & 1 &  & 70.39 & 70.39 \\ \midrule 
+    & Total & 70.3920 & 1 &  & 70.39 & 70.39 \\ \midrule 
+    ConditionalExtractCondition2\_3 & FAILED & 65.1260 & 1 &  & 65.13 & 65.13 \\ \midrule 
+    & Total & 65.1260 & 1 &  & 65.13 & 65.13 \\ \midrule 
+    ConditionalExtractCondition2\_4 & FAILED & 68.8980 & 1 &  & 68.90 & 68.90 \\ \midrule 
+    & Total & 68.8980 & 1 &  & 68.90 & 68.90 \\ \midrule 
+    DefaultTrueBranch\_1 & FAILED & 78.9570 & 1 &  & 78.96 & 78.96 \\ \midrule 
+    & Total & 78.9570 & 1 &  & 78.96 & 78.96 \\ \midrule 
+    EliminateRedundantFalse\_1 & FAILED & 72.1350 & 1 &  & 72.14 & 72.14 \\ \midrule 
+    & Total & 72.1350 & 1 &  & 72.14 & 72.14 \\ \midrule 
+    EliminateRedundantFalse\_2 & TYPE\_ERROR & 29.2610 & 1 &  & 29.26 & 29.26 \\ \midrule 
+    & Total & 29.2610 & 1 &  & 29.26 & 29.26 \\ \midrule 
+    EliminateRedundantFalse\_3 & FAILED & 81.3280 & 1 &  & 81.33 & 81.33 \\ \midrule 
+    & Total & 81.3280 & 1 &  & 81.33 & 81.33 \\ \midrule 
+    flipX\_1 & FAILED & 72.9960 & 1 &  & 73.00 & 73.00 \\ \midrule 
+    & Total & 72.9960 & 1 &  & 73.00 & 73.00 \\ \midrule 
+    flipX\_2 & TYPE\_ERROR & 29.4190 & 1 &  & 29.42 & 29.42 \\ \midrule 
+    & Total & 29.4190 & 1 &  & 29.42 & 29.42 \\ \midrule 
+    flipX\_3 & TYPE\_ERROR & 37.8720 & 1 &  & 37.87 & 37.87 \\ \midrule 
+    & Total & 37.8720 & 1 &  & 37.87 & 37.87 \\ \midrule 
+    MulNegate\_1 & TYPE\_ERROR & 39.0040 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 39.0040 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    MulNeutral\_1 & FAILED & 82.0560 & 1 &  & 82.06 & 82.06 \\ \midrule 
+    & Total & 82.0560 & 1 &  & 82.06 & 82.06 \\ \midrule 
+    MulNeutral\_2 & FAILED & 72.9560 & 1 &  & 72.96 & 72.96 \\ \midrule 
+    & Total & 72.9560 & 1 &  & 72.96 & 72.96 \\ \midrule 
+    MulNeutral\_3 & FAILED & 68.4410 & 1 &  & 68.44 & 68.44 \\ \midrule 
+    & Total & 68.4410 & 1 &  & 68.44 & 68.44 \\ \midrule 
+    MulNeutral\_4 & TYPE\_ERROR & 29.4670 & 1 &  & 29.47 & 29.47 \\ \midrule 
+    & Total & 29.4670 & 1 &  & 29.47 & 29.47 \\ \midrule 
+    normalizeX\_1 & FAILED & 80.0690 & 1 &  & 80.07 & 80.07 \\ \midrule 
+    & Total & 80.0690 & 1 &  & 80.07 & 80.07 \\ \midrule 
+    NotCancel\_1 & FAILED & 73.2060 & 1 &  & 73.21 & 73.21 \\ \midrule 
+    & Total & 73.2060 & 1 &  & 73.21 & 73.21 \\ \midrule 
+    NotCancel\_2 & TYPE\_ERROR & 29.1060 & 1 &  & 29.11 & 29.11 \\ \midrule 
+    & Total & 29.1060 & 1 &  & 29.11 & 29.11 \\ \midrule 
+    NotCancel\_3 & FAILED & 78.6620 & 1 &  & 78.66 & 78.66 \\ \midrule 
+    & Total & 78.6620 & 1 &  & 78.66 & 78.66 \\ \midrule 
+    NotCancel\_4 & FAILED & 72.2580 & 1 &  & 72.26 & 72.26 \\ \midrule 
+    & Total & 72.2580 & 1 &  & 72.26 & 72.26 \\ \midrule 
+    RedundantAddSub\_1 & FAILED & 66.6610 & 1 &  & 66.66 & 66.66 \\ \midrule 
+    & Total & 66.6610 & 1 &  & 66.66 & 66.66 \\ \midrule 
+    SubNegativeConstant\_1 & COUNTEREXAMPLE & 38.4230 & 1 &  & 38.42 & 38.42 \\ \midrule 
+    & Total & 38.4230 & 1 &  & 38.42 & 38.42 \\ \midrule 
+    SubNegativeConstant\_2 & COUNTEREXAMPLE & 74.0180 & 1 &  & 74.02 & 74.02 \\ \midrule 
+    & Total & 74.0180 & 1 &  & 74.02 & 74.02 \\ \midrule 
+    SubSelfIsZero\_1 & FAILED & 134.2790 & 1 &  & 134.28 & 134.28 \\ \midrule 
+    & Total & 134.2790 & 1 &  & 134.28 & 134.28 \\ \midrule 
+    SubThenAddLeft\_1 & FAILED & 72.8450 & 1 &  & 72.85 & 72.85 \\ \midrule 
+    & Total & 72.8450 & 1 &  & 72.85 & 72.85 \\ \midrule 
+    XorSelfIsFalse\_1 & FAILED & 134.1240 & 1 &  & 134.12 & 134.12 \\ \midrule 
+    & Total & 134.1240 & 1 &  & 134.12 & 134.12 \\ \midrule 
+    XorSelfIsFalse\_2 & FAILED & 114.9130 & 1 &  & 114.91 & 114.91 \\ \midrule 
+    & Total & 114.9130 & 1 &  & 114.91 & 114.91 \\ \midrule 
+    Total & FAILED & 80.9499 & 25 & 18.53822 & 65.13 & 134.28 \\ \midrule 
+    & COUNTEREXAMPLE & 56.2205 & 2 & 25.16947 & 38.42 & 74.02 \\ \midrule 
+    & FOUND\_PROOF & 78.1750 & 3 & 16.20026 & 67.34 & 96.80 \\ \midrule 
+    & MALFORMED & 35.9850 & 1 &  & 35.99 & 35.99 \\ \midrule 
+    & TYPE\_ERROR & 33.4696 & 14 & 4.82394 & 26.58 & 42.00 \\ \midrule 
+    & Total & 63.8949 & 45 & 26.73482 & 26.58 & 134.28 \\ \bottomrule 
+
+    \caption{Full results for the evaluation of each mutated optimization rules based on runtime (in seconds)} % needs to go inside longtable environment
+    \label{tab:fullEvaluationMutated}
+\end{longtable}
+
+\chapter{Evaluation on GraalVM's Source Code Annotations}
+
+\begin{longtable}{L{0.25\textwidth} L{0.2\textwidth}  c  c  c  c  c } 
+    \toprule
+    Optimization Rule & Result & Mean & N & Std. Dev & Min & Max \\ \midrule 
+    AbsIdempotence\_1 & TYPE\_ERROR & 34.6030 & 1 &  & 34.60 & 34.60 \\ \midrule 
+    & Total & 34.6030 & 1 &  & 34.60 & 34.60 \\ \midrule 
+    AbsNegate\_1 & TYPE\_ERROR & 29.8490 & 1 &  & 29.85 & 29.85 \\ \midrule 
+    & Total & 29.8490 & 1 &  & 29.85 & 29.85 \\ \midrule 
+    AddLeftNegateToSub\_1 & FOUND\_PROOF & 107.0670 & 1 &  & 107.07 & 107.07 \\ \midrule 
+    & Total & 107.0670 & 1 &  & 107.07 & 107.07 \\ \midrule 
+    AddNeutral\_1 & TYPE\_ERROR & 33.9280 & 1 &  & 33.93 & 33.93 \\ \midrule 
+    & Total & 33.9280 & 1 &  & 33.93 & 33.93 \\ \midrule 
+    AddRightNegateToSub\_1 & FAILED & 82.4230 & 1 &  & 82.42 & 82.42 \\ \midrule 
+    & Total & 82.4230 & 1 &  & 82.42 & 82.42 \\ \midrule 
+    AndEqual\_1 & FOUND\_PROOF & 61.5710 & 1 &  & 61.57 & 61.57 \\ \midrule 
+    & Total & 61.5710 & 1 &  & 61.57 & 61.57 \\ \midrule 
+    AndNeutral\_1 & FAILED & 75.7800 & 1 &  & 75.78 & 75.78 \\ \midrule 
+    & Total & 75.7800 & 1 &  & 75.78 & 75.78 \\ \midrule 
+    ConditionalEqualBranches\_1 & FOUND\_AUTO & 29.2240 & 1 &  & 29.22 & 29.22 \\ \midrule 
+    & Total & 29.2240 & 1 &  & 29.22 & 29.22 \\ \midrule 
+    ConditionalEqualIsRHS\_1 & TYPE\_ERROR & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    ConvertTernaryIntoShift\_1 & MALFORMED & 38.9860 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9860 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    DefaultFalseBranch\_1 & TYPE\_ERROR & 39.0000 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 39.0000 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    DefaultTrueBranch\_1 & TYPE\_ERROR & 38.9940 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9940 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    DistributeSubtraction\_1 & MALFORMED & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    DivisionByNegativeOneIsNegativeSelf\_1 & TYPE\_ERROR & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    DivisionByOneIsSelf\_1 & TYPE\_ERROR & 38.9890 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9890 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    DivisionByOneIsSelf\_2 & MALFORMED & 38.9950 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9950 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    DivisionByPower2\_1 & MALFORMED & 47.9960 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    & Total & 47.9960 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    EliminateConstantRHS\_1 & FAILED & 72.5250 & 1 &  & 72.53 & 72.53 \\ \midrule 
+    & Total & 72.5250 & 1 &  & 72.53 & 72.53 \\ \midrule 
+    EliminateOtherLeftShift\_1 & TYPE\_ERROR & 29.4590 & 1 &  & 29.46 & 29.46 \\ \midrule 
+    & Total & 29.4590 & 1 &  & 29.46 & 29.46 \\ \midrule 
+    EliminateRedundantFalse\_1 & FOUND\_PROOF & 77.1580 & 1 &  & 77.16 & 77.16 \\ \midrule 
+    & Total & 77.1580 & 1 &  & 77.16 & 77.16 \\ \midrule 
+    EliminateRedundantFalse\_2 & TYPE\_ERROR & 30.8360 & 1 &  & 30.84 & 30.84 \\ \midrule 
+    & Total & 30.8360 & 1 &  & 30.84 & 30.84 \\ \midrule 
+    EliminateRedundantMod\_1 & TYPE\_ERROR & 47.9980 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    & Total & 47.9980 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    EliminateRedundantNegative\_1 & FAILED & 73.3410 & 1 &  & 73.34 & 73.34 \\ \midrule 
+    & Total & 73.3410 & 1 &  & 73.34 & 73.34 \\ \midrule 
+    EliminateRHS\_1 & FAILED & 68.2570 & 1 &  & 68.26 & 68.26 \\ \midrule 
+    & Total & 68.2570 & 1 &  & 68.26 & 68.26 \\ \midrule 
+    EliminateRHS\_2 & FAILED & 72.2740 & 1 &  & 72.27 & 72.27 \\ \midrule 
+    & Total & 72.2740 & 1 &  & 72.27 & 72.27 \\ \midrule 
+    FalseCGeqZero\_1 & COUNTEREXAMPLE & 35.1160 & 1 &  & 35.12 & 35.12 \\ \midrule 
+    & Total & 35.1160 & 1 &  & 35.12 & 35.12 \\ \midrule 
+    FalseCLessZero\_1 & COUNTEREXAMPLE & 42.2810 & 1 &  & 42.28 & 42.28 \\ \midrule 
+    & Total & 42.2810 & 1 &  & 42.28 & 42.28 \\ \midrule 
+    flipX\_1 & MALFORMED & 38.0480 & 1 &  & 38.05 & 38.05 \\ \midrule 
+    & Total & 38.0480 & 1 &  & 38.05 & 38.05 \\ \midrule 
+    flipX2\_1 & MALFORMED & 30.6570 & 1 &  & 30.66 & 30.66 \\ \midrule 
+    & Total & 30.6570 & 1 &  & 30.66 & 30.66 \\ \midrule 
+    FloatDivByOneIsSelf\_1 & TYPE\_ERROR & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    FloatDoubleLHSMaxNaNIsNaN\_1 & MALFORMED & 38.9960 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9960 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    FloatDoubleLHSMinNaNIsNaN\_1 & MALFORMED & 38.9990 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9990 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    FloatDoubleRHSMaxNaNIsNaN\_1 & MALFORMED & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    FloatDoubleRHSMinNaNIsNaN\_1 & MALFORMED & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    FloatLHSMaxOfNegInfinity\_1 & FOUND\_PROOF & 47.9970 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    & Total & 47.9970 & 1 &  & 48.00 & 48.00 \\ \midrule 
+    FloatLHSMinOfPosInfinity\_1 & FOUND\_PROOF & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    FloatRHSMaxOfNegInfinity\_1 & FOUND\_PROOF & 36.0060 & 1 &  & 36.01 & 36.01 \\ \midrule 
+    & Total & 36.0060 & 1 &  & 36.01 & 36.01 \\ \midrule 
+    FloatRHSMinOfPosInfinity\_1 & FOUND\_PROOF & 41.9980 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    & Total & 41.9980 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    FloatTruncateTernary1\_1 & TYPE\_ERROR & 29.9910 & 1 &  & 29.99 & 29.99 \\ \midrule 
+    & Total & 29.9910 & 1 &  & 29.99 & 29.99 \\ \midrule 
+    FloatTruncateTernary2\_1 & TYPE\_ERROR & 38.9950 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9950 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    LeftShiftBecomesZero\_1 & TYPE\_ERROR & 41.9880 & 1 &  & 41.99 & 41.99 \\ \midrule 
+    & Total & 41.9880 & 1 &  & 41.99 & 41.99 \\ \midrule 
+    MaskOutRHS\_1 & TYPE\_ERROR & 42.0060 & 1 &  & 42.01 & 42.01 \\ \midrule 
+    & Total & 42.0060 & 1 &  & 42.01 & 42.01 \\ \midrule 
+    MulEliminator\_1 & FOUND\_PROOF & 41.9880 & 1 &  & 41.99 & 41.99 \\ \midrule 
+    & Total & 41.9880 & 1 &  & 41.99 & 41.99 \\ \midrule 
+    MulNegate\_1 & TYPE\_ERROR & 30.0080 & 1 &  & 30.01 & 30.01 \\ \midrule 
+    & Total & 30.0080 & 1 &  & 30.01 & 30.01 \\ \midrule 
+    MulNegativeConstShift\_1 & TYPE\_ERROR & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    MulNeutral2\_1 & TYPE\_ERROR & 38.9860 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9860 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    MulPower2\_1 & TYPE\_ERROR & 38.9940 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9940 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    MulPower2Add1\_1 & TYPE\_ERROR & 39.0110 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0110 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    MulPower2Add1\_2 & TYPE\_ERROR & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    MulPower2AddPower2\_1 & TYPE\_ERROR & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    MulPower2Sub1\_1 & TYPE\_ERROR & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    NegateCancel\_1 & FAILED & 81.2560 & 1 &  & 81.26 & 81.26 \\ \midrule 
+    & Total & 81.2560 & 1 &  & 81.26 & 81.26 \\ \midrule 
+    NegateConditionFlipBranches\_1 & FAILED & 66.4960 & 1 &  & 66.50 & 66.50 \\ \midrule 
+    & Total & 66.4960 & 1 &  & 66.50 & 66.50 \\ \midrule 
+    NegativeShift\_1 & MALFORMED & 29.2310 & 1 &  & 29.23 & 29.23 \\ \midrule 
+    & Total & 29.2310 & 1 &  & 29.23 & 29.23 \\ \midrule 
+    normalizeX\_1 & MALFORMED & 38.9880 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9880 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    normalizeX2\_1 & MALFORMED & 39.0080 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0080 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    NotCancel\_1 & FOUND\_PROOF & 74.1960 & 1 &  & 74.20 & 74.20 \\ \midrule 
+    & Total & 74.1960 & 1 &  & 74.20 & 74.20 \\ \midrule 
+    OptimiseIntegerTest\_1 & TYPE\_ERROR & 30.8170 & 1 &  & 30.82 & 30.82 \\ \midrule 
+    & Total & 30.8170 & 1 &  & 30.82 & 30.82 \\ \midrule 
+    OrEqual\_1 & FOUND\_PROOF & 77.2480 & 1 &  & 77.25 & 77.25 \\ \midrule 
+    & Total & 77.2480 & 1 &  & 77.25 & 77.25 \\ \midrule 
+    OrLeftFallthrough\_1 & FOUND\_PROOF & 36.7470 & 1 &  & 36.75 & 36.75 \\ \midrule 
+    & Total & 36.7470 & 1 &  & 36.75 & 36.75 \\ \midrule 
+    OrNotOperands\_1 & FAILED & 73.5340 & 1 &  & 73.53 & 73.53 \\ \midrule 
+    & Total & 73.5340 & 1 &  & 73.53 & 73.53 \\ \midrule 
+    OrRightFallthrough\_1 & FOUND\_PROOF & 34.4510 & 1 &  & 34.45 & 34.45 \\ \midrule 
+    & Total & 34.4510 & 1 &  & 34.45 & 34.45 \\ \midrule 
+    OrShiftConstantRight\_1 & FAILED & 76.4070 & 1 &  & 76.41 & 76.41 \\ \midrule 
+    & Total & 76.4070 & 1 &  & 76.41 & 76.41 \\ \midrule 
+    RedundantAddSub\_1 & MALFORMED & 28.5770 & 1 &  & 28.58 & 28.58 \\ \midrule 
+    & Total & 28.5770 & 1 &  & 28.58 & 28.58 \\ \midrule 
+    RedundantSubAdd\_1 & MALFORMED & 42.0080 & 1 &  & 42.01 & 42.01 \\ \midrule 
+    & Total & 42.0080 & 1 &  & 42.01 & 42.01 \\ \midrule 
+    RemainderCompareZeroEquivalent\_1 & TYPE\_ERROR & 35.9890 & 1 &  & 35.99 & 35.99 \\ \midrule 
+    & Total & 35.9890 & 1 &  & 35.99 & 35.99 \\ \midrule 
+    RemainderWhenXNegative\_1 & MALFORMED & 45.0070 & 1 &  & 45.01 & 45.01 \\ \midrule 
+    & Total & 45.0070 & 1 &  & 45.01 & 45.01 \\ \midrule 
+    RemainderWhenXPositive\_1 & MALFORMED & 32.9870 & 1 &  & 32.99 & 32.99 \\ \midrule 
+    & Total & 32.9870 & 1 &  & 32.99 & 32.99 \\ \midrule 
+    ReturnXOnZeroShift\_1 & TYPE\_ERROR & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0070 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    RightShiftsBecomeNegativeOne\_1 & TYPE\_ERROR & 38.9870 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9870 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    RightShiftsBecomeZero\_1 & TYPE\_ERROR & 39.0090 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0090 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    RightShiftsMerge1\_1 & TYPE\_ERROR & 41.9980 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    & Total & 41.9980 & 1 &  & 42.00 & 42.00 \\ \midrule 
+    RightShiftsMerge2\_1 & TYPE\_ERROR & 38.9850 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    & Total & 38.9850 & 1 &  & 38.99 & 38.99 \\ \midrule 
+    ShiftLeftByConstantAnd\_1 & TYPE\_ERROR & 35.9970 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    & Total & 35.9970 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    ShiftRightByConstantAnd\_1 & TYPE\_ERROR & 39.0060 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0060 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    SubAfterAddLeft\_1 & FOUND\_PROOF & 76.9990 & 1 &  & 77.00 & 77.00 \\ \midrule 
+    & Total & 76.9990 & 1 &  & 77.00 & 77.00 \\ \midrule 
+    SubAfterAddRight\_1 & FOUND\_PROOF & 72.2130 & 1 &  & 72.21 & 72.21 \\ \midrule 
+    & Total & 72.2130 & 1 &  & 72.21 & 72.21 \\ \midrule 
+    SubAfterSubLeft\_1 & FAILED & 71.3620 & 1 &  & 71.36 & 71.36 \\ \midrule 
+    & Total & 71.3620 & 1 &  & 71.36 & 71.36 \\ \midrule 
+    SubNegativeValue\_1 & FAILED & 71.6750 & 1 &  & 71.68 & 71.68 \\ \midrule 
+    & Total & 71.6750 & 1 &  & 71.68 & 71.68 \\ \midrule 
+    SubSelfIsZero\_1 & TYPE\_ERROR & 28.7390 & 1 &  & 28.74 & 28.74 \\ \midrule 
+    & Total & 28.7390 & 1 &  & 28.74 & 28.74 \\ \midrule 
+    SubThenAddLeft\_1 & FOUND\_PROOF & 77.9880 & 1 &  & 77.99 & 77.99 \\ \midrule 
+    & Total & 77.9880 & 1 &  & 77.99 & 77.99 \\ \midrule 
+    SubThenAddRight\_1 & FOUND\_PROOF & 77.2970 & 1 &  & 77.30 & 77.30 \\ \midrule 
+    & Total & 77.2970 & 1 &  & 77.30 & 77.30 \\ \midrule 
+    SubThenSubLeft\_1 & FOUND\_PROOF & 120.6880 & 1 &  & 120.69 & 120.69 \\ \midrule 
+    & Total & 120.6880 & 1 &  & 120.69 & 120.69 \\ \midrule 
+    SubtractZero\_1 & TYPE\_ERROR & 60.0070 & 1 &  & 60.01 & 60.01 \\ \midrule 
+    & Total & 60.0070 & 1 &  & 60.01 & 60.01 \\ \midrule 
+    TransformRightShiftIntoConstantShift\_1 & TYPE\_ERROR & 38.9990 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9990 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    TransformShiftIntoMul\_1 & TYPE\_ERROR & 39.0060 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0060 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    TransformToUnsignedOnPositiveX\_1 & COUNTEREXAMPLE & 44.9770 & 1 &  & 44.98 & 44.98 \\ \midrule 
+    & Total & 44.9770 & 1 &  & 44.98 & 44.98 \\ \midrule 
+    TrueCGeqZero\_1 & FOUND\_PROOF & 40.8700 & 1 &  & 40.87 & 40.87 \\ \midrule 
+    & Total & 40.8700 & 1 &  & 40.87 & 40.87 \\ \midrule 
+    TrueCLessZero\_1 & FOUND\_PROOF & 40.1240 & 1 &  & 40.12 & 40.12 \\ \midrule 
+    & Total & 40.1240 & 1 &  & 40.12 & 40.12 \\ \midrule 
+    UnsignedMergeDivision\_1 & MALFORMED & 30.0080 & 1 &  & 30.01 & 30.01 \\ \midrule 
+    & Total & 30.0080 & 1 &  & 30.01 & 30.01 \\ \midrule 
+    UnsignedRemWhenYOne\_1 & MALFORMED & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9980 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    UnsignedRemWhenYPower2\_1 & MALFORMED & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    & Total & 38.9970 & 1 &  & 39.00 & 39.00 \\ \midrule 
+    UnsignedRemXYConst\_1 & MALFORMED & 44.9860 & 1 &  & 44.99 & 44.99 \\ \midrule 
+    & Total & 44.9860 & 1 &  & 44.99 & 44.99 \\ \midrule 
+    XorSelfIsFalse\_1 & TYPE\_ERROR & 35.9970 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    & Total & 35.9970 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    XorShiftConstantRight\_1 & TYPE\_ERROR & 35.9980 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    & Total & 35.9980 & 1 &  & 36.00 & 36.00 \\ \midrule 
+    ZeroSubtractValue\_1 & TYPE\_ERROR & 39.0080 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    & Total & 39.0080 & 1 &  & 39.01 & 39.01 \\ \midrule 
+    Total & FAILED & 73.7775 & 12 & 4.66542 & 66.50 & 82.42 \\ \midrule 
+    & FOUND\_AUTO & 29.2240 & 1 &  & 29.22 & 29.22 \\ \midrule 
+    & COUNTEREXAMPLE & 40.7913 & 3 & 5.09649 & 35.12 & 44.98 \\ \midrule 
+    & FOUND\_PROOF & 62.1897 & 19 & 25.19682 & 34.45 & 120.69 \\ \midrule 
+    & MALFORMED & 38.0221 & 21 & 5.16433 & 28.58 & 48.00 \\ \midrule 
+    & TYPE\_ERROR & 37.8549 & 40 & 5.43876 & 28.74 & 60.01 \\ \midrule 
+    & Total & 47.1999 & 96 & 18.31314 & 28.58 & 120.69 \\ \bottomrule 
+
+    \caption{Full results for the evaluation of each existing GraalVM source code annotation based on runtime (in seconds)} % needs to go inside longtable environment
+    \label{tab:fullEvaluationVeriopt}
+\end{longtable}
 
 \end{appendices}
